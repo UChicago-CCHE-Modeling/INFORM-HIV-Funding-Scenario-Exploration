@@ -283,6 +283,8 @@ create_isobudget_lines <- function(total_reduction,
 add_iso_budget_lines_to_plot <- function(isobudget_data,
                                          heatmap_plots_list,
                                          total_baseline,
+                                         G_ART_baseline,
+                                         G_PrEP_baseline,
                                          label_type = "both") {
   # label_type: "percentage" (e.g., "10% cut"),
   #             "absolute" (e.g., "$2.4B"),

@@ -1,0 +1,10 @@
+# R plotting device scratch output
+Rplots.pdf
+**/Rplots.pdf
+
+# Cost-mapping binary figures: regenerated from code + tracked CSVs, so they
+# churn on every render even when results are unchanged. Keep them out of git;
+# the CSVs (and the .tex table) are the diffable record of results. Force-add a
+# figure (git add -f) only when its results have actually changed.
+04_cost_mapping/output/*.png
+04_cost_mapping/output/*.pdf
