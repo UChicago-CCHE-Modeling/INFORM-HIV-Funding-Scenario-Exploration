@@ -158,7 +158,9 @@ forest <- plot_funding_forest(
   gp_incidence_fit = gp_incidence_fit,
   art_cov_per_funding = art_cov_per_funding,
   prep_cov_per_funding = prep_cov_per_funding,
-  funding_levels = c(0.10, 0.25, 0.40, 0.55, 0.70),
+  reduction_levels = c(0.10, 0.25, 0.40),
+  n_samples_per_checkpoint = p$n_samples_per_checkpoint,
+  ci_probs = p$ci_probs,
   common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
   save_path = paste0(plots_folder_name, "forest_incidence_risk_ratio_funding"))
 
@@ -184,27 +186,23 @@ plot_funding_bar(
   irr_ci_results = irr_ci_results)
 
 # ---------------------------------------------------------------------------
-# Table
+# Table (main-text Table 1): two stacked blocks, shared baseline.
+#   A. Intervention use reduction (labelled % = coverage reduction)
+#   B. Government funding reduction (labelled % mapped to coverage via cost model)
+# Both blocks and both figure panels use the same 10/25/40% levels and common
+# random numbers. Also writes a CSV of the same values for git tracking.
 # ---------------------------------------------------------------------------
-key_scenarios <- data.frame(
-  Scenario = c("Baseline (No cuts)", "10% ART cut only", "10% PrEP cut only",
-               "25% ART cut only", "25% PrEP cut only", "40% ART cut only",
-               "40% PrEP cut only", "40% cut for both"),
-  art_funding_reduction_pct  = c(0, 10, 0, 25, 0, 40, 0, 40),
-  prep_funding_reduction_pct = c(0, 0, 10, 0, 25, 0, 40, 40))
-
-create_funding_scenario_table(
-  key_scenarios,
-  funding_data = model_proportions_mean_incidence,
-  G_ART_baseline_val = p$G_ART_baseline,
-  G_PrEP_baseline_val = p$G_PrEP_baseline,
-  incidence_ci_results = incidence_ci_results,
-  relative_change_ci_results = relative_change_ci_results,
-  irr_ci_results = irr_ci_results,
-  output_dir = plots_folder_name,
-  metric_type = "both",
-  common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
+table_out <- create_funding_scenario_table(
   gp_incidence_fit = gp_incidence_fit,
+  art_cov_per_funding = art_cov_per_funding,
+  prep_cov_per_funding = prep_cov_per_funding,
+  reduction_levels = c(0.10, 0.25, 0.40),
   n_samples_per_checkpoint = p$n_samples_per_checkpoint,
   horizon_tick = p$horizon_tick,
-  ci_probs = p$ci_probs)
+  ci_probs = p$ci_probs,
+  common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
+  output_dir = plots_folder_name)
+
+write.csv(as.data.frame(table_out),
+          paste0(plots_folder_name, "funding_scenarios_table.csv"),
+          row.names = FALSE)

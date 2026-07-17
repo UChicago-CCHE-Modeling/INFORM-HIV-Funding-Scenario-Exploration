@@ -1,289 +1,152 @@
+# =============================================================================
+# Funding / use scenario table (main-text Table 1)
+# -----------------------------------------------------------------------------
+# Two stacked blocks sharing one baseline row:
+#   A. Intervention use reduction  -- the labelled percentage IS the coverage
+#      reduction fed to the surrogate (no cost mapping).
+#   B. Government funding reduction -- the labelled percentage is a funding
+#      reduction, mapped to a (smaller) coverage reduction via the cost model
+#      (paper Eqs. 1-2) before the surrogate query.
+#
+# The same percentage produces a larger incidence increase under direct use
+# reduction than under funding reduction, because a funding cut of fraction d
+# lowers coverage by only d * (P_baseline - gamma) / P_baseline. Stacking the
+# blocks makes that dampening explicit and matches the two-panel Figure 1.
+#
+# Every quantity is computed from the stage-03 surrogate with common random
+# numbers (compute_scenario_draws_crn), so the mean incidence, absolute increase
+# (cases per 100 p.y.), and incidence risk ratio all reference the SAME baseline
+# predictive draws and are mutually consistent.
+# =============================================================================
+
 library(kableExtra)
 library(dplyr)
 
-#' Create funding scenario table with incidence outcomes
+#' Create the two-block scenario table (Table 1).
 #'
-#' @param key_scenarios Data frame with scenario definitions
-#' @param funding_data Full funding reduction scenario data
-#' @param G_ART_baseline_val Baseline ART funding value
-#' @param G_PrEP_baseline_val Baseline PrEP funding value
-#' @param output_dir Directory to save output files
-#' @param metric_type Which relative metric to display: "both", "relative_increase", or "risk_ratio"
-#'
-#' @return The formatted output table (data frame)
-#'
-#' @details
-#' When metric_type = "both": includes both relative increase % and risk ratio columns
-#' When metric_type = "relative_increase": only includes relative increase % column
-#' When metric_type = "risk_ratio": only includes risk ratio column
-#'
-create_funding_scenario_table <- function(key_scenarios,
-                                          funding_data,
-                                          G_ART_baseline_val,
-                                          G_PrEP_baseline_val,
-                                          incidence_ci_results,
-                                          relative_change_ci_results,
-                                          irr_ci_results,
-                                          output_dir = "results/orig_params/",
-                                          metric_type = c("both", "relative_increase", "risk_ratio"),
-                                          common_random_numbers = TRUE,
-                                          gp_incidence_fit = NULL,
-                                          n_samples_per_checkpoint = 50,
-                                          horizon_tick = 10,
-                                          ci_probs = c(0.05, 0.95)) {
+#' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
+#' @param art_cov_per_funding Coverage-reduction fraction per unit ART funding
+#'   reduction, (P_ART_baseline - gamma_ART) / P_ART_baseline. Used in block B.
+#' @param prep_cov_per_funding Same, for PrEP.
+#' @param reduction_levels ART-only / PrEP-only reduction levels per block
+#'   (defaults to 10/25/40%). A "both at max level" row is added per block.
+#' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
+#' @param horizon_tick Reporting horizon tick.
+#' @param ci_probs Length-2 lower/upper quantile probabilities for the PPIs.
+#' @param common_random_numbers If TRUE (default), baseline and scenario draws
+#'   share randomness within each checkpoint (see irr_common_random_numbers.R).
+#' @param output_dir Directory for funding_scenarios_table.tex.
+#' @return The formatted output table (data.frame), invisibly.
+create_funding_scenario_table <- function(gp_incidence_fit,
+                                           art_cov_per_funding,
+                                           prep_cov_per_funding,
+                                           reduction_levels = c(0.10, 0.25, 0.40),
+                                           n_samples_per_checkpoint = 50,
+                                           horizon_tick = 10,
+                                           ci_probs = c(0.05, 0.95),
+                                           common_random_numbers = TRUE,
+                                           output_dir = "output/") {
 
-  metric_type <- match.arg(metric_type)
+  max_level <- max(reduction_levels)
 
-  # When common_random_numbers = TRUE, the incidence risk ratio and relative
-  # change are recomputed per scenario with common random numbers (baseline and
-  # scenario surrogate draws share randomness within each checkpoint) via
-  # compute_irr_draws_crn(), so they match the forest figure and no longer
-  # inherit the independent-draw noise floor that pushes small-effect intervals
-  # below the null. This requires the surrogate (gp_incidence_fit); if it is not
-  # supplied, we fall back to the independent-draw grid CI results.
-  use_crn <- isTRUE(common_random_numbers) && !is.null(gp_incidence_fit)
-
-  # For each scenario, find the closest matching point in funding_data
-  # and extract the mean incidence and sd
-  tolerance <- 1  # 1% tolerance for matching
-
-  key_scenarios$mean_incidence <- NA
-  key_scenarios$sd_incidence <- NA
-
-  for (i in 1:nrow(key_scenarios)) {
-    # Find matching row in funding_data
-    matching_idx <- which(
-      abs(funding_data$pct_delta_ART_fund - key_scenarios$art_funding_reduction_pct[i]) < tolerance &
-      abs(funding_data$pct_delta_PrEP_fund - key_scenarios$prep_funding_reduction_pct[i]) < tolerance
+  # ---- Scenario definitions (per block, in labelled-reduction terms) --------
+  # For each block: ART-only at each level, PrEP-only at each level, and a
+  # "both" row at the maximum level. The labelled reduction is the coverage
+  # reduction in block A and the funding reduction in block B.
+  pct <- function(x) sprintf("%g%%", x * 100)
+  build_block <- function() {
+    rbind(
+      data.frame(label = paste(pct(reduction_levels), "ART cut only"),
+                 art = reduction_levels, prep = 0),
+      data.frame(label = paste(pct(reduction_levels), "PrEP cut only"),
+                 art = 0, prep = reduction_levels),
+      data.frame(label = paste(pct(max_level), "cut for both"),
+                 art = max_level, prep = max_level)
     )
+  }
+  block <- build_block()
+  n_block <- nrow(block)
 
-    if (length(matching_idx) > 0) {
-      # Take first match (or closest if multiple)
-      if (length(matching_idx) > 1) {
-        # Find closest match
-        distances <- abs(funding_data$pct_delta_ART_fund[matching_idx] - key_scenarios$art_funding_reduction_pct[i]) +
-                    abs(funding_data$pct_delta_PrEP_fund[matching_idx] - key_scenarios$prep_funding_reduction_pct[i])
-        idx <- matching_idx[which.min(distances)]
-      } else {
-        idx <- matching_idx[1]
-      }
+  # Coverage-reduction points fed to the surrogate. Block A: identity mapping.
+  # Block B: funding reduction scaled to coverage by the cost-model factors.
+  cov_use  <- cbind(-block$art,                       -block$prep)
+  cov_fund <- cbind(-block$art * art_cov_per_funding, -block$prep * prep_cov_per_funding)
+  newX_native <- rbind(cov_use, cov_fund)
 
-      key_scenarios$mean_incidence[i] <- funding_data$year10_mean_incidence[idx]
-      key_scenarios$sd_incidence[i] <- funding_data$year10_sd_incidence[idx]
-    } else {
-      warning(sprintf("No match found for scenario '%s' (ART: %.1f%%, PrEP: %.1f%%)",
-                     key_scenarios$Scenario[i],
-                     key_scenarios$art_funding_reduction_pct[i],
-                     key_scenarios$prep_funding_reduction_pct[i]))
-    }
+  # ---- Surrogate draws with common random numbers ---------------------------
+  set.seed(0)  # match the surrogate/figure RNG convention
+  draws <- compute_scenario_draws_crn(
+    newX_native, gp_incidence_fit,
+    n_samples_per_checkpoint = n_samples_per_checkpoint,
+    common_random_numbers = common_random_numbers, tick = horizon_tick)
+
+  q_lo <- ci_probs[1]; q_hi <- ci_probs[2]
+  fmt_inc <- function(v) sprintf("%.2f [%.2f, %.2f]",
+                                 mean(v), quantile(v, q_lo), quantile(v, q_hi))
+  fmt_irr <- function(v) sprintf("%.2f [%.2f, %.2f]",
+                                 mean(v), quantile(v, q_lo), quantile(v, q_hi))
+
+  # Per-draw absolute increase (cases per 100 p.y.) vs the shared baseline draws.
+  abs_increase <- sweep(draws$incidence, 2, draws$baseline, "-")
+
+  # ---- Assemble rows --------------------------------------------------------
+  # Shared baseline row first, then block A rows, then block B rows.
+  make_rows <- function(offset) {
+    data.frame(
+      Scenario = block$label,
+      art_pct  = sprintf("%.1f", block$art * 100),
+      prep_pct = sprintf("%.1f", block$prep * 100),
+      incidence = vapply(seq_len(n_block),
+                         function(k) fmt_inc(draws$incidence[offset + k, ]), character(1)),
+      abs_inc  = vapply(seq_len(n_block),
+                        function(k) fmt_inc(abs_increase[offset + k, ]), character(1)),
+      irr      = vapply(seq_len(n_block),
+                        function(k) fmt_irr(draws$irr[offset + k, ]), character(1)),
+      check.names = FALSE, stringsAsFactors = FALSE)
   }
 
-  # Match posterior predictive intervals from CI results
-  # Note: CI data frames are indexed by original grid scenarios, not deduplicated funding_data rows
-  key_scenarios$incidence_ci_lower <- NA
-  key_scenarios$incidence_ci_upper <- NA
-  key_scenarios$relative_change_ci_lower <- NA
-  key_scenarios$relative_change_ci_upper <- NA
-  key_scenarios$relative_change_mean <- NA
-  key_scenarios$irr_ci_lower <- NA
-  key_scenarios$irr_ci_upper <- NA
-  key_scenarios$irr_mean <- NA
+  baseline_row <- data.frame(
+    Scenario = "Baseline (no cuts)", art_pct = "0.0", prep_pct = "0.0",
+    incidence = fmt_inc(draws$baseline),
+    abs_inc = sprintf("%.2f [%.2f, %.2f]", 0, 0, 0),
+    irr = "1.00 [1.00, 1.00]",
+    check.names = FALSE, stringsAsFactors = FALSE)
 
-  # Native coverage-reduction coordinates per scenario (for the CRN recompute).
-  key_scenarios$art_cov_reduction <- NA
-  key_scenarios$prep_cov_reduction <- NA
+  rows_use  <- make_rows(0)
+  rows_fund <- make_rows(n_block)
+  all_rows  <- rbind(baseline_row, rows_use, rows_fund)
 
-  # Loop through scenarios to match with CI data
-  for (i in 1:nrow(key_scenarios)) {
-    # Find matching row in funding_data first
-    matching_idx <- which(
-      abs(funding_data$pct_delta_ART_fund - key_scenarios$art_funding_reduction_pct[i]) < tolerance &
-      abs(funding_data$pct_delta_PrEP_fund - key_scenarios$prep_funding_reduction_pct[i]) < tolerance
-    )
-
-    if (length(matching_idx) > 0) {
-      # Get the ART/PrEP reduction values from funding_data
-      if (length(matching_idx) > 1) {
-        distances <- abs(funding_data$pct_delta_ART_fund[matching_idx] - key_scenarios$art_funding_reduction_pct[i]) +
-                    abs(funding_data$pct_delta_PrEP_fund[matching_idx] - key_scenarios$prep_funding_reduction_pct[i])
-        idx <- matching_idx[which.min(distances)]
-      } else {
-        idx <- matching_idx[1]
-      }
-
-      art_reduction <- funding_data$ART_pct_reduction[idx]
-      prep_reduction <- funding_data$PrEP_pct_reduction[idx]
-
-      key_scenarios$art_cov_reduction[i] <- art_reduction
-      key_scenarios$prep_cov_reduction[i] <- prep_reduction
-
-      # Now find this in the CI results by matching ART/PrEP reduction values
-      # The CI data frames' grid_scenario corresponds to rows in the original grid
-      # We need to reconstruct which grid scenario this is
-
-      # Create the grid to find the scenario index
-      ngrid <- 101
-      newX <- seq(-0.75, 0, length.out = ngrid)
-      newX_grid <- as.matrix(expand.grid(newX, newX))
-
-      # Find matching grid scenario
-      grid_tolerance <- 0.001  # Small tolerance for floating point comparison
-      grid_idx <- which(
-        abs(newX_grid[, 1] - art_reduction) < grid_tolerance &
-        abs(newX_grid[, 2] - prep_reduction) < grid_tolerance
-      )
-
-      if (length(grid_idx) > 0) {
-        grid_scenario_num <- grid_idx[1]
-
-        # Match incidence CI
-        key_scenarios$incidence_ci_lower[i] <- incidence_ci_results$ci_lower[grid_scenario_num]
-        key_scenarios$incidence_ci_upper[i] <- incidence_ci_results$ci_upper[grid_scenario_num]
-
-        # Match relative change CI
-        key_scenarios$relative_change_ci_lower[i] <- relative_change_ci_results$ci_lower[grid_scenario_num]
-        key_scenarios$relative_change_ci_upper[i] <- relative_change_ci_results$ci_upper[grid_scenario_num]
-        key_scenarios$relative_change_mean[i] <- relative_change_ci_results$mean_relative_change[grid_scenario_num]
-
-        # Match IRR CI
-        key_scenarios$irr_ci_lower[i] <- irr_ci_results$ci_lower[grid_scenario_num]
-        key_scenarios$irr_ci_upper[i] <- irr_ci_results$ci_upper[grid_scenario_num]
-        key_scenarios$irr_mean[i] <- irr_ci_results$mean_irr[grid_scenario_num]
-      }
-    }
-  }
-
-  # ---- Common random numbers override for IRR and relative change -----------
-  # Recompute the risk ratio and relative-change columns per scenario with
-  # common random numbers so they match the forest figure. Absolute incidence
-  # and its PPI are left untouched (CRN affects only the ratio-to-baseline
-  # quantities). Each scenario is queried at its own native coverage-reduction
-  # point at the reporting horizon (single tick).
-  if (use_crn) {
-    valid <- which(!is.na(key_scenarios$art_cov_reduction))
-    if (length(valid) > 0) {
-      newX_native <- cbind(key_scenarios$art_cov_reduction[valid],
-                           key_scenarios$prep_cov_reduction[valid])
-      set.seed(0)  # match the surrogate/figure RNG convention
-      irr_draws <- compute_irr_draws_crn(
-        newX_native, gp_incidence_fit,
-        n_samples_per_checkpoint = n_samples_per_checkpoint,
-        common_random_numbers = TRUE, tick = horizon_tick)
-      irr_sum <- summarise_irr_draws(irr_draws, probs = ci_probs)
-
-      key_scenarios$irr_mean[valid]     <- irr_sum$mean_irr
-      key_scenarios$irr_ci_lower[valid] <- irr_sum$ci_lower
-      key_scenarios$irr_ci_upper[valid] <- irr_sum$ci_upper
-
-      # Relative change (%) is the same CRN draws expressed as (IRR - 1) * 100.
-      rel_draws <- (irr_draws - 1) * 100
-      key_scenarios$relative_change_mean[valid]     <- apply(rel_draws, 1, mean)
-      key_scenarios$relative_change_ci_lower[valid] <- apply(rel_draws, 1, quantile, probs = ci_probs[1])
-      key_scenarios$relative_change_ci_upper[valid] <- apply(rel_draws, 1, quantile, probs = ci_probs[2])
-    }
-  }
-
-  # Use proper posterior predictive intervals from CI results
-  key_scenarios$lower_95 <- key_scenarios$incidence_ci_lower
-  key_scenarios$upper_95 <- key_scenarios$incidence_ci_upper
-
-  # Find baseline incidence (0% reductions) for relative comparison
-  baseline_idx <- which(
-    abs(key_scenarios$art_funding_reduction_pct) < 0.01 &
-    abs(key_scenarios$prep_funding_reduction_pct) < 0.01
-  )
-
-  if (length(baseline_idx) > 0) {
-    baseline_incidence <- key_scenarios$mean_incidence[baseline_idx[1]]
-  } else {
-    # If baseline not in scenarios, find it in the data
-    baseline_idx_data <- which(
-      abs(funding_data$pct_delta_ART_fund) < 0.01 &
-      abs(funding_data$pct_delta_PrEP_fund) < 0.01
-    )
-    if (length(baseline_idx_data) > 0) {
-      baseline_incidence <- funding_data$year10_mean_incidence[baseline_idx_data[1]]
-      cat(sprintf("Baseline incidence (from data): %.4f per 100 PY\n", baseline_incidence))
-    } else {
-      warning("Could not find baseline incidence")
-      baseline_incidence <- NA
-    }
-  }
-
-  # Calculate metrics based on metric_type
-  if (metric_type %in% c("both", "relative_increase")) {
-    # Use CI mean from relative_change_ci_results
-    key_scenarios$relative_increase_pct <- key_scenarios$relative_change_mean
-  }
-
-  if (metric_type %in% c("both", "risk_ratio")) {
-    # Use CI mean from irr_ci_results
-    key_scenarios$incidence_risk_ratio <- key_scenarios$irr_mean
-  }
-
-  # Format for table output - build columns based on metric_type
   output_table <- data.frame(
-    `Govt. Funding Reduction Scenarios (%)` = key_scenarios$Scenario,
-    `ART Govt. Reduction (\\%)` = sprintf("%.1f", key_scenarios$art_funding_reduction_pct),
-    `PrEP Govt. Reduction (\\%)` = sprintf("%.1f", key_scenarios$prep_funding_reduction_pct),
-    `Mean HIV Incidence per 100 p.y. [95\\% Posterior Predictive Interval]` = sprintf(
-      "%.2f [%.2f, %.2f]",
-      key_scenarios$mean_incidence,
-      key_scenarios$lower_95,
-      key_scenarios$upper_95
-    ),
-    check.names = FALSE
-  )
+    `Scenario` = all_rows$Scenario,
+    `ART Reduction (\\%)`  = all_rows$art_pct,
+    `PrEP Reduction (\\%)` = all_rows$prep_pct,
+    `Mean HIV Incidence per 100 p.y. [95\\% PPI]` = all_rows$incidence,
+    `Absolute Increase per 100 p.y. [95\\% PPI]`  = all_rows$abs_inc,
+    `Incidence Risk Ratio [95\\% PPI]` = all_rows$irr,
+    check.names = FALSE, stringsAsFactors = FALSE)
 
-  # Add metric columns based on metric_type with confidence intervals
-  if (metric_type == "both") {
-    output_table$`Incidence Risk Ratio [95\\% PPI]` <- sprintf(
-      "%.2f [%.2f, %.2f]",
-      key_scenarios$incidence_risk_ratio,
-      key_scenarios$irr_ci_lower,
-      key_scenarios$irr_ci_upper
-    )
-
-    output_table$`Relative Increase (\\%) [95\\% PPI]` <- sprintf(
-      "%.1f [%.1f, %.1f]",
-      key_scenarios$relative_increase_pct,
-      key_scenarios$relative_change_ci_lower,
-      key_scenarios$relative_change_ci_upper
-    )
-  } else if (metric_type == "risk_ratio") {
-    output_table$`Incidence Risk Ratio [95\\% PPI]` <- sprintf(
-      "%.2f [%.2f, %.2f]",
-      key_scenarios$incidence_risk_ratio,
-      key_scenarios$irr_ci_lower,
-      key_scenarios$irr_ci_upper
-    )
-  } else if (metric_type == "relative_increase") {
-    output_table$`Relative Increase (\\%) [95\\% PPI]` <- sprintf(
-      "%.1f [%.1f, %.1f]",
-      key_scenarios$relative_increase_pct,
-      key_scenarios$relative_change_ci_lower,
-      key_scenarios$relative_change_ci_upper
-    )
-  }
-
-  # Create LaTeX table
-  latex_table <- kable(output_table,
+  # ---- LaTeX table with two grouped blocks, landscape -----------------------
+  # Escape the literal "%" in scenario labels for LaTeX (raw % starts a comment);
+  # the returned/CSV table keeps the plain "%".
+  latex_df <- output_table
+  latex_df$Scenario <- gsub("%", "\\\\%", latex_df$Scenario)
+  latex_table <- kable(latex_df,
                        format = "latex",
                        booktabs = TRUE,
                        escape = FALSE,
-                       caption = "Govt. Funding Reduction Scenarios and HIV Incidence Outcomes") %>%
-    kable_styling(latex_options = c("scale_down", "hold_position"))
+                       align = c("l", "r", "r", "l", "l", "l"),
+                       caption = "HIV incidence outcomes under intervention-use and government-funding reductions") %>%
+    kable_styling(latex_options = c("scale_down", "hold_position"),
+                  full_width = FALSE) %>%
+    pack_rows("A. Intervention use reduction", 2, 1 + n_block,
+              bold = TRUE, latex_gap_space = "0.6em") %>%
+    pack_rows("B. Government funding reduction", 2 + n_block, 1 + 2 * n_block,
+              bold = TRUE, latex_gap_space = "0.6em") %>%
+    landscape()
 
-  # Create output directory if it doesn't exist
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-
-  # Write to files
+  if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
   tex_file <- file.path(output_dir, "funding_scenarios_table.tex")
-
   writeLines(latex_table, tex_file)
 
-  # Return the output table
-  return(invisible(output_table))
+  invisible(output_table)
 }

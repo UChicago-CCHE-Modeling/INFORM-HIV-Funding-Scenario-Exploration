@@ -1,20 +1,28 @@
 # =============================================================================
-# Forest plot of incidence risk ratios by GOVERNMENT FUNDING reduction
+# Two-panel forest plot of incidence risk ratios (main-text Figure 1)
 # -----------------------------------------------------------------------------
-# Main-text Figure 1. A funding-axis version of the stage-03 coverage forest
-# plot: scenarios are defined in program-funding terms (the quantity elicited
-# from stakeholders), then mapped to ART/PrEP coverage reductions via the linear
-# funding-to-coverage relationship (paper Eqs. 1-2) before being fed to the
-# surrogate. Three scenarios are compared at each funding-reduction level:
+# Panel A: scenarios defined directly in INTERVENTION USE (coverage) reduction
+#          terms. The labelled percentage IS the coverage reduction fed to the
+#          surrogate (no cost mapping).
+# Panel B: the same labelled percentages interpreted as GOVERNMENT FUNDING
+#          reductions, mapped to coverage reductions via the linear
+#          funding-to-coverage relationship (paper Eqs. 1-2) before the
+#          surrogate query.
+#
+# Putting the two side by side on a shared incidence-risk-ratio axis makes the
+# cost model's dampening explicit: a given percentage funding reduction (Panel
+# B) produces a SMALLER coverage reduction -- and hence a smaller incidence
+# increase -- than the same percentage use reduction (Panel A), because a
+# funding cut of fraction d lowers coverage by only
+#   d * (P_baseline - gamma) / P_baseline
+# (linear until coverage hits the privately-financed floor gamma). The per-unit
+# coverage-reduction factors are passed in from run_cost_mapping.R. PrEP has a
+# larger private (gamma) share, so its funding cuts barely move coverage.
+#
+# In each panel three scenarios are compared at each reduction level:
 #   - Vary ART (PrEP = 0)
 #   - Vary PrEP (ART = 0)
 #   - Vary both equally
-#
-# A funding cut of fraction d on a program reduces its coverage by
-#   d * (P_baseline - gamma) / P_baseline
-# (linear until coverage hits the privately-financed floor gamma), so the
-# per-unit-funding coverage-reduction factors are passed in from cost_mapping.R
-# where the mapping parameters live.
 #
 # Styling: randplot::theme_rand (RAND house style), PT Sans with a graceful
 # fallback, no plot title (the caption lives in the paper), no shaded panel
@@ -25,6 +33,7 @@ library(ggplot2)
 library(data.table)
 library(hetGP)     # so predict() dispatches on the stored hetGP models
 library(randplot)
+library(patchwork)
 
 # ---- Font selection with graceful fallback ----------------------------------
 # Register `preferred` with showtext (so it embeds as vector outlines in the PDF
@@ -53,16 +62,100 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
   if (reg) preferred else fallback
 }
 
-#' Forest plot of incidence risk ratios by government funding reduction
+# ---- Forest data for one panel ----------------------------------------------
+# Build the scenario grid (PrEP-only, ART-only, both) at each reduction level,
+# map the labelled reduction to a coverage reduction via the supplied per-unit
+# factors (1 for the direct-use panel; the cost-model factors for the funding
+# panel), query the surrogate, and summarise the incidence risk ratio with
+# common random numbers by default. The IRR is averaged over the trajectory
+# horizon per draw (tick = NULL), the forest-plot convention.
+.forest_panel_data <- function(gp_incidence_fit,
+                               art_cov_per_unit,
+                               prep_cov_per_unit,
+                               reduction_levels,
+                               n_samples_per_checkpoint,
+                               common_random_numbers,
+                               ci_probs,
+                               panel_label) {
+  scenarios <- rbind(
+    data.table(scenario = "PrEP reduction", art_red = 0,                prep_red = reduction_levels),
+    data.table(scenario = "ART reduction",  art_red = reduction_levels, prep_red = 0),
+    data.table(scenario = "PrEP and ART",   art_red = reduction_levels, prep_red = reduction_levels)
+  )
+  scenarios[, reduction := pmax(art_red, prep_red)]  # level being varied
+
+  # Map labelled reduction -> coverage reduction (identity for the use panel).
+  scenarios[, art_cov  := art_red  * art_cov_per_unit]
+  scenarios[, prep_cov := prep_red * prep_cov_per_unit]
+
+  # Baseline (0,0) plus each (art, prep) coverage reduction, native scale
+  # (reductions are negative to the surrogate).
+  newX_native <- as.matrix(scenarios[, .(-art_cov, -prep_cov)])
+  draws <- compute_scenario_draws_crn(
+    newX_native, gp_incidence_fit,
+    n_samples_per_checkpoint = n_samples_per_checkpoint,
+    common_random_numbers = common_random_numbers, tick = NULL)
+  irr_summary <- summarise_draws(draws$irr, probs = ci_probs)
+
+  forest_dt <- copy(scenarios)
+  forest_dt[, `:=`(panel = panel_label,
+                   mean  = irr_summary$mean,
+                   lower = irr_summary$ci_lower,
+                   upper = irr_summary$ci_upper)]
+  forest_dt[, scenario := factor(scenario, levels = c("PrEP reduction",
+                                                      "ART reduction",
+                                                      "PrEP and ART"))]
+  # crosses_one is TRUE when the lower bound is at or below the null (RR = 1).
+  forest_dt[, crosses_one := lower <= 1]
+  forest_dt[]
+}
+
+# ---- One panel's ggplot ------------------------------------------------------
+.forest_panel_plot <- function(forest_dt, title, ylab, x_limits, x_breaks,
+                               show_legend, chosen_font) {
+  pd <- position_dodge(width = 0.7)
+  p <- ggplot(forest_dt,
+              aes(x = mean, y = factor(reduction * 100), color = scenario)) +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey40", linewidth = 0.5) +
+    geom_errorbar(aes(xmin = lower, xmax = upper), orientation = "y",
+                  width = 0.4, linewidth = 0.8, position = pd) +
+    geom_point(size = 3, position = pd) +
+    # RAND categorical palette: blue = ART, green = PrEP, purple = both
+    scale_color_manual(values = c("PrEP reduction" = "#45aF84",
+                                  "ART reduction"  = "#597cbe",
+                                  "PrEP and ART"   = "#af61a7"),
+                       name = NULL) +
+    scale_x_log10(breaks = x_breaks, limits = x_limits,
+                  expand = expansion(mult = 0)) +
+    labs(title = title, x = "Mean incidence risk ratio", y = ylab) +
+    theme_rand(font = chosen_font) +
+    theme(legend.position = if (show_legend) "top" else "none",
+          plot.title = element_text(face = "bold", hjust = 0),
+          axis.title.x = element_text(face = "bold"),
+          axis.title.y = element_text(face = "bold"),
+          # theme_rand blanks the plot background (transparent); force white so
+          # the raster PNG preview is not transparent.
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.background = element_rect(fill = "white", color = NA))
+  p
+}
+
+#' Two-panel forest plot of incidence risk ratios (Figure 1)
 #'
-#' The incidence risk ratios are computed by compute_irr_draws_crn() (see
-#' R/irr_common_random_numbers.R), which supports common random numbers.
+#' Panel A shows scenarios defined as direct intervention-use (coverage)
+#' reductions; Panel B shows the same labelled percentages as government funding
+#' reductions, mapped to coverage through the cost model. Both share the
+#' incidence-risk-ratio axis so the funding-to-coverage dampening is visible.
+#' Risk ratios are computed by compute_irr_draws_crn() (see
+#' R/irr_common_random_numbers.R) with common random numbers by default.
 #'
 #' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
 #' @param art_cov_per_funding Coverage-reduction fraction per unit ART funding
-#'   reduction, i.e. (P_ART_baseline - gamma_ART) / P_ART_baseline.
+#'   reduction, i.e. (P_ART_baseline - gamma_ART) / P_ART_baseline. Used only in
+#'   Panel B; Panel A uses an identity mapping (1).
 #' @param prep_cov_per_funding Same, for PrEP.
-#' @param funding_levels Funding-reduction fractions to plot (y-axis levels).
+#' @param reduction_levels Reduction fractions to plot on the y-axis of both
+#'   panels (defaults to 10/25/40%).
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
 #' @param common_random_numbers If TRUE, the incidence risk ratio is computed
 #'   with common random numbers (baseline and scenario share predictive draws
@@ -75,91 +168,66 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
 #'   font-embedded) and "<save_path>.png" (raster preview) when provided.
 #' @param width,height Figure size in inches.
 #'
-#' @return A list with the ggplot object ($plot) and the underlying forest data
-#'   table ($data, one row per scenario x funding level with mean/lower/upper
-#'   risk ratios and a crosses_one flag). Returned invisibly when saved.
+#' @return A list with the combined ggplot object ($plot) and the underlying
+#'   forest data table ($data, one row per panel x scenario x reduction level
+#'   with mean/lower/upper risk ratios and a crosses_one flag). Returned
+#'   invisibly when saved.
 plot_funding_forest <- function(gp_incidence_fit,
                                 art_cov_per_funding,
                                 prep_cov_per_funding,
-                                funding_levels = c(0.10, 0.25, 0.40, 0.55, 0.70),
+                                reduction_levels = c(0.10, 0.25, 0.40),
                                 n_samples_per_checkpoint = 50,
+                                ci_probs = c(0.025, 0.975),
                                 common_random_numbers = TRUE,
                                 font = "PT Sans",
                                 save_path = NULL,
-                                width = 7.0,
-                                height = 4.6,
+                                width = 10.0,
+                                height = 4.8,
                                 dpi = 300) {
 
   set.seed(0)  # surrogate prediction draws are stochastic
 
-  # ---- Build the scenario grid (funding terms) ------------------------------
-  scenarios <- rbind(
-    data.table(scenario = "PrEP reduction", art_fund = 0,              prep_fund = funding_levels),
-    data.table(scenario = "ART reduction",  art_fund = funding_levels, prep_fund = 0),
-    data.table(scenario = "PrEP and ART",   art_fund = funding_levels, prep_fund = funding_levels)
-  )
-  scenarios[, reduction := pmax(art_fund, prep_fund)]  # funding reduction being varied
-
-  # Map funding reductions -> coverage reductions (paper Eqs. 1-2).
-  scenarios[, art_cov  := art_fund  * art_cov_per_funding]
-  scenarios[, prep_cov := prep_fund * prep_cov_per_funding]
-
-  # ---- Compute risk ratios --------------------------------------------------
-  # All scenario points in one call: baseline (0,0) plus each (art, prep)
-  # coverage reduction, native scale (reductions are negative). The IRR is
-  # averaged over the trajectory horizon per draw (tick = NULL), matching the
-  # forest-plot convention, and computed with or without common random numbers.
-  newX_native <- as.matrix(scenarios[, .(-art_cov, -prep_cov)])
-  irr_draws <- compute_irr_draws_crn(
-    newX_native, gp_incidence_fit,
+  # Panel A: direct use reduction (identity mapping). Panel B: funding reduction
+  # mapped to coverage via the cost-model factors.
+  data_use <- .forest_panel_data(
+    gp_incidence_fit, art_cov_per_unit = 1, prep_cov_per_unit = 1,
+    reduction_levels = reduction_levels,
     n_samples_per_checkpoint = n_samples_per_checkpoint,
-    common_random_numbers = common_random_numbers, tick = NULL)
-  irr_summary <- summarise_irr_draws(irr_draws, probs = c(0.05, 0.95))
+    common_random_numbers = common_random_numbers, ci_probs = ci_probs,
+    panel_label = "A. Intervention use reduction")
 
-  forest_dt <- copy(scenarios)
-  forest_dt[, `:=`(mean  = irr_summary$mean_irr,
-                   lower = irr_summary$ci_lower,
-                   upper = irr_summary$ci_upper)]
+  data_fund <- .forest_panel_data(
+    gp_incidence_fit, art_cov_per_unit = art_cov_per_funding,
+    prep_cov_per_unit = prep_cov_per_funding,
+    reduction_levels = reduction_levels,
+    n_samples_per_checkpoint = n_samples_per_checkpoint,
+    common_random_numbers = common_random_numbers, ci_probs = ci_probs,
+    panel_label = "B. Government funding reduction")
 
-  forest_dt[, scenario := factor(scenario, levels = c("PrEP reduction",
-                                                      "ART reduction",
-                                                      "PrEP and ART"))]
+  forest_dt <- rbind(data_use, data_fund)
 
-  # Flag rows whose 90% credible interval crosses (or dips below) 1: these are
-  # the whiskers the main text discusses. crosses_one is TRUE whenever the lower
-  # bound is at or below the null risk ratio of 1.
-  forest_dt[, crosses_one := lower <= 1]
-
-  # ---- Plot -----------------------------------------------------------------
-  pd <- position_dodge(width = 0.7)
-  x_hi <- max(forest_dt$upper) * 1.04  # small headroom past the widest whisker
+  # Shared x-axis across both panels so the dampening reads straight across.
+  x_hi <- max(forest_dt$upper) * 1.04
+  x_breaks <- c(1, 1.5, 2, 2.5, 3, 3.5, 4)
+  x_breaks <- x_breaks[x_breaks <= x_hi]
+  x_limits <- c(1 / 1.01, x_hi)
 
   chosen_font <- resolve_font(font)
 
-  p <- ggplot(forest_dt,
-              aes(x = mean, y = factor(reduction * 100), color = scenario)) +
-    geom_vline(xintercept = 1, linetype = "dashed", color = "grey40", linewidth = 0.5) +
-    geom_errorbar(aes(xmin = lower, xmax = upper), orientation = "y",
-                  width = 0.4, linewidth = 0.8, position = pd) +
-    geom_point(size = 3, position = pd) +
-    # RAND categorical palette: blue = ART, green = PrEP, purple = both
-    scale_color_manual(values = c("PrEP reduction" = "#45aF84",
-                                  "ART reduction"  = "#597cbe",
-                                  "PrEP and ART"   = "#af61a7"),
-                       name = NULL) +
-    scale_x_log10(breaks = c(1, 1.25, 1.5, 1.75, 2, 2.25),
-                  limits = c(1 / 1.01, x_hi),
-                  expand = expansion(mult = 0)) +
-    labs(x = "Mean incidence risk ratio",
-         y = "Government funding reduction (%)") +
-    theme_rand(font = chosen_font) +
-    theme(legend.position = "top",
-          axis.title.x = element_text(face = "bold"),
-          axis.title.y = element_text(face = "bold"),
-          # theme_rand blanks the plot background (transparent); force white so
-          # the raster PNG preview is not transparent.
-          plot.background = element_rect(fill = "white", color = NA),
-          panel.background = element_rect(fill = "white", color = NA))
+  p_use <- .forest_panel_plot(
+    data_use, title = "(A)",
+    ylab = "Intervention use reduction (%)",
+    x_limits = x_limits, x_breaks = x_breaks,
+    show_legend = TRUE, chosen_font = chosen_font)
+  p_fund <- .forest_panel_plot(
+    data_fund, title = "(B)",
+    ylab = "Government funding reduction (%)",
+    x_limits = x_limits, x_breaks = x_breaks,
+    show_legend = TRUE, chosen_font = chosen_font)
+
+  p <- (p_use + p_fund) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom")
 
   if (!is.null(save_path)) {
     # Vector PDF for the paper. showtext (set up in resolve_font) embeds the
