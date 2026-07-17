@@ -166,11 +166,26 @@ create_funding_scenario_table <- function(gp_incidence_fit,
   # keeps the plain, un-padded strings.
   latex_df <- build_table(align_ci = TRUE)
   latex_df$Scenario <- gsub("%", "\\\\%", latex_df$Scenario)
+
+  # Multi-line headers via \shortstack (LaTeX kernel, no extra package). Wrapping
+  # the long headers narrows the table's natural width, so scale_down shrinks it
+  # far less and the body numbers render much larger. "[" after "\\" must be
+  # braced ({[}) or LaTeX reads it as \\'s optional argument.
+  wrapped_headers <- c(
+    "Scenario",
+    "\\shortstack[r]{ART Use\\\\Reduction (\\%)}",
+    "\\shortstack[r]{PrEP Use\\\\Reduction (\\%)}",
+    "\\shortstack[r]{Mean HIV Incidence\\\\per 100 p.y.\\\\{[}95\\% PPI]}",
+    "\\shortstack[r]{Absolute Increase\\\\per 100 p.y.\\\\{[}95\\% PPI]}",
+    "\\shortstack[r]{Incidence Risk Ratio\\\\{[}95\\% PPI]}")
+
   latex_table <- kable(latex_df,
                        format = "latex",
                        booktabs = TRUE,
                        escape = FALSE,
                        align = c("l", "r", "r", "r", "r", "r"),
+                       col.names = wrapped_headers,
+                       label = "funding_scenarios",
                        caption = "HIV incidence outcomes under intervention-use and government-funding reductions") %>%
     kable_styling(latex_options = c("scale_down", "hold_position"),
                   full_width = FALSE) %>%
