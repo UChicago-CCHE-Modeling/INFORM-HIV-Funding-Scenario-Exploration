@@ -64,7 +64,7 @@ library(dplyr)
 #'   (defaults to 10/25/40%). A "both at max level" row is added per block.
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
 #' @param horizon_tick Reporting horizon tick.
-#' @param ci_probs Length-2 lower/upper quantile probabilities for the PPIs.
+#' @param ci_probs Length-2 lower/upper quantile probabilities for the CrIs.
 #' @param common_random_numbers If TRUE (default), baseline and scenario draws
 #'   share randomness within each checkpoint (see irr_common_random_numbers.R).
 #' @param output_dir Directory for funding_scenarios_table.tex.
@@ -148,11 +148,11 @@ create_funding_scenario_table <- function(gp_incidence_fit,
       `Scenario` = scenario,
       `ART Use Reduction (\\%)`  = sprintf("%.1f", art_use),
       `PrEP Use Reduction (\\%)` = sprintf("%.1f", prep_use),
-      `Mean HIV Incidence per 100 p.y. [95\\% PPI]` =
+      `Mean HIV Incidence per 100 p.y. [95\\% CrI]` =
         .format_ci_column(s_inc$mean, s_inc$lo, s_inc$hi, align = align_ci),
-      `Absolute Increase per 100 p.y. [95\\% PPI]` =
+      `Absolute Increase per 100 p.y. [95\\% CrI]` =
         .format_ci_column(s_abs$mean, s_abs$lo, s_abs$hi, align = align_ci),
-      `Incidence Risk Ratio [95\\% PPI]` =
+      `Incidence Risk Ratio [95\\% CrI]` =
         .format_ci_column(s_irr$mean, s_irr$lo, s_irr$hi, align = align_ci),
       check.names = FALSE, stringsAsFactors = FALSE)
   }
@@ -175,9 +175,9 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     "Scenario",
     "\\shortstack[r]{ART Use\\\\Reduction (\\%)}",
     "\\shortstack[r]{PrEP Use\\\\Reduction (\\%)}",
-    "\\shortstack[r]{Mean HIV Incidence\\\\per 100 p.y.\\\\{[}95\\% PPI]}",
-    "\\shortstack[r]{Absolute Increase\\\\per 100 p.y.\\\\{[}95\\% PPI]}",
-    "\\shortstack[r]{Incidence Risk Ratio\\\\{[}95\\% PPI]}")
+    "\\shortstack[r]{Mean HIV Incidence\\\\per 100 p.y.\\\\{[}95\\% CrI]}",
+    "\\shortstack[r]{Absolute Increase\\\\per 100 p.y.\\\\{[}95\\% CrI]}",
+    "\\shortstack[r]{Incidence Risk Ratio\\\\{[}95\\% CrI]}")
 
   latex_table <- kable(latex_df,
                        format = "latex",
@@ -205,10 +205,10 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     "{\\footnotesize\\begin{minipage}{\\linewidth}\n",
     "\\emph{Abbreviations:} ART, antiretroviral therapy; PrEP, ",
     "pre-exposure prophylaxis; HIV, human immunodeficiency virus; ",
-    "p.y., person-years; PPI, posterior predictive interval; ",
+    "p.y., person-years; CrI, credible interval; ",
     "IRR, incidence risk ratio.\\\\[0.3em]\n",
     "All quantities are HIV incidence outcomes at the 10-year horizon, ",
-    "reported as the mean with a 95\\% PPI pooled across the 100 calibrated ",
+    "reported as the mean with a 95\\% CrI pooled across the 100 calibrated ",
     "model checkpoints. \\emph{ART Use Reduction} and \\emph{PrEP Use Reduction} ",
     "are the reductions in intervention use (coverage) fed to the model: in ",
     "block A they equal the labelled reduction, whereas in block B they are the ",
