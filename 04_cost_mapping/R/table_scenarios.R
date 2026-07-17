@@ -25,9 +25,23 @@ create_funding_scenario_table <- function(key_scenarios,
                                           relative_change_ci_results,
                                           irr_ci_results,
                                           output_dir = "results/orig_params/",
-                                          metric_type = c("both", "relative_increase", "risk_ratio")) {
+                                          metric_type = c("both", "relative_increase", "risk_ratio"),
+                                          common_random_numbers = TRUE,
+                                          gp_incidence_fit = NULL,
+                                          n_samples_per_checkpoint = 50,
+                                          horizon_tick = 10,
+                                          ci_probs = c(0.05, 0.95)) {
 
   metric_type <- match.arg(metric_type)
+
+  # When common_random_numbers = TRUE, the incidence risk ratio and relative
+  # change are recomputed per scenario with common random numbers (baseline and
+  # scenario surrogate draws share randomness within each checkpoint) via
+  # compute_irr_draws_crn(), so they match the forest figure and no longer
+  # inherit the independent-draw noise floor that pushes small-effect intervals
+  # below the null. This requires the surrogate (gp_incidence_fit); if it is not
+  # supplied, we fall back to the independent-draw grid CI results.
+  use_crn <- isTRUE(common_random_numbers) && !is.null(gp_incidence_fit)
 
   # For each scenario, find the closest matching point in funding_data
   # and extract the mean incidence and sd
@@ -75,6 +89,10 @@ create_funding_scenario_table <- function(key_scenarios,
   key_scenarios$irr_ci_upper <- NA
   key_scenarios$irr_mean <- NA
 
+  # Native coverage-reduction coordinates per scenario (for the CRN recompute).
+  key_scenarios$art_cov_reduction <- NA
+  key_scenarios$prep_cov_reduction <- NA
+
   # Loop through scenarios to match with CI data
   for (i in 1:nrow(key_scenarios)) {
     # Find matching row in funding_data first
@@ -95,6 +113,9 @@ create_funding_scenario_table <- function(key_scenarios,
 
       art_reduction <- funding_data$ART_pct_reduction[idx]
       prep_reduction <- funding_data$PrEP_pct_reduction[idx]
+
+      key_scenarios$art_cov_reduction[i] <- art_reduction
+      key_scenarios$prep_cov_reduction[i] <- prep_reduction
 
       # Now find this in the CI results by matching ART/PrEP reduction values
       # The CI data frames' grid_scenario corresponds to rows in the original grid
@@ -129,6 +150,36 @@ create_funding_scenario_table <- function(key_scenarios,
         key_scenarios$irr_ci_upper[i] <- irr_ci_results$ci_upper[grid_scenario_num]
         key_scenarios$irr_mean[i] <- irr_ci_results$mean_irr[grid_scenario_num]
       }
+    }
+  }
+
+  # ---- Common random numbers override for IRR and relative change -----------
+  # Recompute the risk ratio and relative-change columns per scenario with
+  # common random numbers so they match the forest figure. Absolute incidence
+  # and its PPI are left untouched (CRN affects only the ratio-to-baseline
+  # quantities). Each scenario is queried at its own native coverage-reduction
+  # point at the reporting horizon (single tick).
+  if (use_crn) {
+    valid <- which(!is.na(key_scenarios$art_cov_reduction))
+    if (length(valid) > 0) {
+      newX_native <- cbind(key_scenarios$art_cov_reduction[valid],
+                           key_scenarios$prep_cov_reduction[valid])
+      set.seed(0)  # match the surrogate/figure RNG convention
+      irr_draws <- compute_irr_draws_crn(
+        newX_native, gp_incidence_fit,
+        n_samples_per_checkpoint = n_samples_per_checkpoint,
+        common_random_numbers = TRUE, tick = horizon_tick)
+      irr_sum <- summarise_irr_draws(irr_draws, probs = ci_probs)
+
+      key_scenarios$irr_mean[valid]     <- irr_sum$mean_irr
+      key_scenarios$irr_ci_lower[valid] <- irr_sum$ci_lower
+      key_scenarios$irr_ci_upper[valid] <- irr_sum$ci_upper
+
+      # Relative change (%) is the same CRN draws expressed as (IRR - 1) * 100.
+      rel_draws <- (irr_draws - 1) * 100
+      key_scenarios$relative_change_mean[valid]     <- apply(rel_draws, 1, mean)
+      key_scenarios$relative_change_ci_lower[valid] <- apply(rel_draws, 1, quantile, probs = ci_probs[1])
+      key_scenarios$relative_change_ci_upper[valid] <- apply(rel_draws, 1, quantile, probs = ci_probs[2])
     }
   }
 

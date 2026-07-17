@@ -23,10 +23,19 @@ R_DIR <- "../R"
 source(file.path(R_DIR, "parameters.R"))
 source(file.path(R_DIR, "cost_model.R"))
 source(file.path(R_DIR, "outcomes.R"))
+source(file.path(R_DIR, "irr_common_random_numbers.R"))
 source(file.path(R_DIR, "plot_heatmap.R"))
 source(file.path(R_DIR, "plot_bar.R"))
 source(file.path(R_DIR, "plot_forest.R"))
 source(file.path(R_DIR, "table_scenarios.R"))
+
+# Common random numbers for the incidence risk ratio: when TRUE, the baseline
+# and scenario surrogate draws share randomness within each checkpoint so shared
+# predictive noise cancels in the ratio (the (0,0) self-ratio is then exactly 1
+# and small-effect intervals no longer spuriously cross below 1). Used by BOTH
+# the forest figure and the scenario table so the two stay consistent. Flip to
+# FALSE to reproduce the classic independent-draw behaviour for comparison.
+USE_COMMON_RANDOM_NUMBERS <- TRUE
 
 # ---- Inputs / outputs -----------------------------------------------------
 # Stage-03 surrogate bundle restores gp_incidence_fit, baseline_incidence_prevalence,
@@ -41,6 +50,10 @@ cat(sprintf("Baseline ART coverage: %.2f%%\n",  p$P_ART_baseline  * 100))
 cat(sprintf("Baseline PrEP coverage: %.2f%%\n", p$P_PrEP_baseline * 100))
 
 # ---- Surrogate incidence surface + posterior predictive intervals ---------
+# The grid prediction draws from the surrogate's predictive distribution, so pin
+# a seed here for reproducible heatmaps, PPIs, and the tracked results CSVs.
+# (The forest plot and table CRN paths set their own seed downstream.)
+set.seed(12345)
 grid <- predict_incidence_grid(p, gp_incidence_fit, predict_hiv_composite_surrogate)
 ppi  <- compute_ppi(grid, p)
 incidence_ci_results       <- ppi$incidence_ci_results
@@ -143,11 +156,10 @@ prep_cov_per_funding <- (p$P_PrEP_baseline - p$gamma_PrEP) / p$P_PrEP_baseline
 
 forest <- plot_funding_forest(
   gp_incidence_fit = gp_incidence_fit,
-  baseline_incidence_prevalence = baseline_incidence_prevalence,
-  predict_diff_fn = predict_hiv_diff_composite_surrogate,
   art_cov_per_funding = art_cov_per_funding,
   prep_cov_per_funding = prep_cov_per_funding,
   funding_levels = c(0.10, 0.25, 0.40, 0.55, 0.70),
+  common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
   save_path = paste0(plots_folder_name, "forest_incidence_risk_ratio_funding"))
 
 # Summary CSV of the forest results (mean incidence risk ratio + 90% CI per
@@ -190,4 +202,9 @@ create_funding_scenario_table(
   relative_change_ci_results = relative_change_ci_results,
   irr_ci_results = irr_ci_results,
   output_dir = plots_folder_name,
-  metric_type = "both")
+  metric_type = "both",
+  common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
+  gp_incidence_fit = gp_incidence_fit,
+  n_samples_per_checkpoint = p$n_samples_per_checkpoint,
+  horizon_tick = p$horizon_tick,
+  ci_probs = p$ci_probs)

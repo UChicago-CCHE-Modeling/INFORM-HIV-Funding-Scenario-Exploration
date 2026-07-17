@@ -53,33 +53,23 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
   if (reg) preferred else fallback
 }
 
-# ---- One scenario -> incidence risk ratio -----------------------------------
-# art_cov_red / prep_cov_red are COVERAGE reduction fractions in [0, 0.75]; the
-# surrogate takes their negatives as native inputs. Returns the mean incidence
-# risk ratio over the horizon with a 90% credible interval.
-.funding_forest_irr <- function(art_cov_red, prep_cov_red, predict_diff_fn,
-                                gp_incidence_fit, baseline_incidence_prevalence,
-                                n_samples_per_checkpoint = 50) {
-  samples <- predict_diff_fn(
-    c(-art_cov_red, -prep_cov_red), gp_incidence_fit, baseline_incidence_prevalence,
-    qoi = "hiv_total_incidence_per_100py",
-    n_samples_per_checkpoint = n_samples_per_checkpoint, diff_type = "times")
-  rr_by_draw <- apply(samples[, 1, ], 2, mean)
-  data.table(mean  = mean(rr_by_draw),
-             lower = quantile(rr_by_draw, 0.05),
-             upper = quantile(rr_by_draw, 0.95))
-}
-
 #' Forest plot of incidence risk ratios by government funding reduction
 #'
+#' The incidence risk ratios are computed by compute_irr_draws_crn() (see
+#' R/irr_common_random_numbers.R), which supports common random numbers.
+#'
 #' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
-#' @param baseline_incidence_prevalence Baseline trajectories (from surrogate.Rdata).
-#' @param predict_diff_fn The predict_hiv_diff_composite_surrogate helper.
 #' @param art_cov_per_funding Coverage-reduction fraction per unit ART funding
 #'   reduction, i.e. (P_ART_baseline - gamma_ART) / P_ART_baseline.
 #' @param prep_cov_per_funding Same, for PrEP.
 #' @param funding_levels Funding-reduction fractions to plot (y-axis levels).
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
+#' @param common_random_numbers If TRUE, the incidence risk ratio is computed
+#'   with common random numbers (baseline and scenario share predictive draws
+#'   within each checkpoint via compute_irr_draws_crn(); shared noise cancels so
+#'   the (0,0) self-ratio is exactly 1). If FALSE, baseline and scenario draws
+#'   are independent (classic behaviour, which inflates intervals for tiny
+#'   effects and can push lower bounds below 1). Defaults to TRUE.
 #' @param font Preferred font family; falls back to "sans" if unavailable.
 #' @param save_path Path without extension. Saves "<save_path>.pdf" (vector,
 #'   font-embedded) and "<save_path>.png" (raster preview) when provided.
@@ -89,12 +79,11 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
 #'   table ($data, one row per scenario x funding level with mean/lower/upper
 #'   risk ratios and a crosses_one flag). Returned invisibly when saved.
 plot_funding_forest <- function(gp_incidence_fit,
-                                baseline_incidence_prevalence,
-                                predict_diff_fn,
                                 art_cov_per_funding,
                                 prep_cov_per_funding,
                                 funding_levels = c(0.10, 0.25, 0.40, 0.55, 0.70),
                                 n_samples_per_checkpoint = 50,
+                                common_random_numbers = TRUE,
                                 font = "PT Sans",
                                 save_path = NULL,
                                 width = 7.0,
@@ -116,10 +105,21 @@ plot_funding_forest <- function(gp_incidence_fit,
   scenarios[, prep_cov := prep_fund * prep_cov_per_funding]
 
   # ---- Compute risk ratios --------------------------------------------------
-  forest_dt <- scenarios[, .funding_forest_irr(
-    art_cov, prep_cov, predict_diff_fn,
-    gp_incidence_fit, baseline_incidence_prevalence, n_samples_per_checkpoint),
-    by = .(scenario, reduction, art_fund, prep_fund)]
+  # All scenario points in one call: baseline (0,0) plus each (art, prep)
+  # coverage reduction, native scale (reductions are negative). The IRR is
+  # averaged over the trajectory horizon per draw (tick = NULL), matching the
+  # forest-plot convention, and computed with or without common random numbers.
+  newX_native <- as.matrix(scenarios[, .(-art_cov, -prep_cov)])
+  irr_draws <- compute_irr_draws_crn(
+    newX_native, gp_incidence_fit,
+    n_samples_per_checkpoint = n_samples_per_checkpoint,
+    common_random_numbers = common_random_numbers, tick = NULL)
+  irr_summary <- summarise_irr_draws(irr_draws, probs = c(0.05, 0.95))
+
+  forest_dt <- copy(scenarios)
+  forest_dt[, `:=`(mean  = irr_summary$mean_irr,
+                   lower = irr_summary$ci_lower,
+                   upper = irr_summary$ci_upper)]
 
   forest_dt[, scenario := factor(scenario, levels = c("PrEP reduction",
                                                       "ART reduction",
