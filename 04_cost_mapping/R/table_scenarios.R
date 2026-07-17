@@ -8,10 +8,13 @@
 #      reduction, mapped to a (smaller) coverage reduction via the cost model
 #      (paper Eqs. 1-2) before the surrogate query.
 #
-# The same percentage produces a larger incidence increase under direct use
-# reduction than under funding reduction, because a funding cut of fraction d
-# lowers coverage by only d * (P_baseline - gamma) / P_baseline. Stacking the
-# blocks makes that dampening explicit and matches the two-panel Figure 1.
+# The two percentage columns report the resulting ART/PrEP intervention-USE
+# reduction. In block A that equals the labelled reduction; in block B it is the
+# smaller, cost-mapped value (e.g. a 10% ART funding cut -> ~7.5% ART use
+# reduction), because a funding cut of fraction d lowers coverage by only
+# d * (P_baseline - gamma) / P_baseline. The funding level itself lives in the
+# row label and the block header. Stacking the blocks makes the dampening
+# explicit and matches the two-panel Figure 1.
 #
 # Every quantity is computed from the stage-03 surrogate with common random
 # numbers (compute_scenario_draws_crn), so the mean incidence, absolute increase
@@ -21,6 +24,35 @@
 
 library(kableExtra)
 library(dplyr)
+
+# Align a numeric vector on its decimal point for LaTeX, by prefixing phantom
+# boxes: one \phantom{0} per missing integer digit (relative to the widest value
+# in the vector) and \phantom{-} for non-negative values when any value is
+# negative. Body-font digits and the minus sign are fixed-width, so the phantoms
+# reserve exactly the space of the characters they stand in for and every cell
+# ends up the same width -- decimals line up. Returns LaTeX strings; used only
+# for the rendered table, never for the tracked CSV.
+.align_decimal <- function(x, digits = 2) {
+  neg      <- any(x < 0, na.rm = TRUE)
+  body     <- formatC(abs(x), format = "f", digits = digits)  # unsigned, e.g. "10.12"
+  int_part <- sub("\\..*$", "", body)
+  max_int  <- max(nchar(int_part))
+  vapply(seq_along(x), function(i) {
+    sign_box <- if (isTRUE(x[i] < 0)) "-" else if (neg) "\\phantom{-}" else ""
+    n_pad    <- max_int - nchar(int_part[i])
+    pad_box  <- if (n_pad > 0) strrep("\\phantom{0}", n_pad) else ""
+    paste0(sign_box, pad_box, body[i])
+  }, character(1))
+}
+
+# "mean [lo, hi]" composite with each of the three sub-columns aligned across
+# the whole column. `align` toggles the LaTeX phantom padding (TRUE for the
+# rendered table, FALSE for the plain CSV strings).
+.format_ci_column <- function(mean_v, lo_v, hi_v, digits = 2, align = FALSE) {
+  fmt <- if (align) function(v) .align_decimal(v, digits)
+         else       function(v) formatC(v, format = "f", digits = digits)
+  paste0(fmt(mean_v), " [", fmt(lo_v), ", ", fmt(hi_v), "]")
+}
 
 #' Create the two-block scenario table (Table 1).
 #'
@@ -67,10 +99,15 @@ create_funding_scenario_table <- function(gp_incidence_fit,
   block <- build_block()
   n_block <- nrow(block)
 
-  # Coverage-reduction points fed to the surrogate. Block A: identity mapping.
-  # Block B: funding reduction scaled to coverage by the cost-model factors.
-  cov_use  <- cbind(-block$art,                       -block$prep)
-  cov_fund <- cbind(-block$art * art_cov_per_funding, -block$prep * prep_cov_per_funding)
+  # Coverage-reduction points fed to the surrogate. Block A: identity mapping
+  # (labelled reduction IS the use reduction). Block B: funding reduction scaled
+  # to a use reduction by the cost-model factors.
+  art_use_A  <- block$art;  prep_use_A <- block$prep
+  art_use_B  <- block$art  * art_cov_per_funding
+  prep_use_B <- block$prep * prep_cov_per_funding
+
+  cov_use  <- cbind(-art_use_A, -prep_use_A)
+  cov_fund <- cbind(-art_use_B, -prep_use_B)
   newX_native <- rbind(cov_use, cov_fund)
 
   # ---- Surrogate draws with common random numbers ---------------------------
@@ -81,60 +118,59 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     common_random_numbers = common_random_numbers, tick = horizon_tick)
 
   q_lo <- ci_probs[1]; q_hi <- ci_probs[2]
-  fmt_inc <- function(v) sprintf("%.2f [%.2f, %.2f]",
-                                 mean(v), quantile(v, q_lo), quantile(v, q_hi))
-  fmt_irr <- function(v) sprintf("%.2f [%.2f, %.2f]",
-                                 mean(v), quantile(v, q_lo), quantile(v, q_hi))
 
   # Per-draw absolute increase (cases per 100 p.y.) vs the shared baseline draws.
   abs_increase <- sweep(draws$incidence, 2, draws$baseline, "-")
 
-  # ---- Assemble rows --------------------------------------------------------
-  # Shared baseline row first, then block A rows, then block B rows.
-  make_rows <- function(offset) {
+  # ---- Full per-row draw matrices (baseline row first, then A, then B) ------
+  # Baseline is exact by construction: incidence = its own draws, absolute
+  # increase = 0, IRR = 1.
+  n_draws  <- length(draws$baseline)
+  inc_full <- rbind(draws$baseline, draws$incidence)
+  abs_full <- rbind(rep(0, n_draws), abs_increase)
+  irr_full <- rbind(rep(1, n_draws), draws$irr)
+
+  row_summary <- function(M) list(
+    mean = rowMeans(M),
+    lo   = apply(M, 1, quantile, probs = q_lo),
+    hi   = apply(M, 1, quantile, probs = q_hi))
+  s_inc <- row_summary(inc_full)
+  s_abs <- row_summary(abs_full)
+  s_irr <- row_summary(irr_full)
+
+  # ---- Assemble the display columns -----------------------------------------
+  scenario <- c("Baseline (no cuts)", block$label, block$label)
+  art_use  <- c(0, art_use_A,  art_use_B)  * 100
+  prep_use <- c(0, prep_use_A, prep_use_B) * 100
+
+  build_table <- function(align_ci) {
     data.frame(
-      Scenario = block$label,
-      art_pct  = sprintf("%.1f", block$art * 100),
-      prep_pct = sprintf("%.1f", block$prep * 100),
-      incidence = vapply(seq_len(n_block),
-                         function(k) fmt_inc(draws$incidence[offset + k, ]), character(1)),
-      abs_inc  = vapply(seq_len(n_block),
-                        function(k) fmt_inc(abs_increase[offset + k, ]), character(1)),
-      irr      = vapply(seq_len(n_block),
-                        function(k) fmt_irr(draws$irr[offset + k, ]), character(1)),
+      `Scenario` = scenario,
+      `ART Use Reduction (\\%)`  = sprintf("%.1f", art_use),
+      `PrEP Use Reduction (\\%)` = sprintf("%.1f", prep_use),
+      `Mean HIV Incidence per 100 p.y. [95\\% PPI]` =
+        .format_ci_column(s_inc$mean, s_inc$lo, s_inc$hi, align = align_ci),
+      `Absolute Increase per 100 p.y. [95\\% PPI]` =
+        .format_ci_column(s_abs$mean, s_abs$lo, s_abs$hi, align = align_ci),
+      `Incidence Risk Ratio [95\\% PPI]` =
+        .format_ci_column(s_irr$mean, s_irr$lo, s_irr$hi, align = align_ci),
       check.names = FALSE, stringsAsFactors = FALSE)
   }
 
-  baseline_row <- data.frame(
-    Scenario = "Baseline (no cuts)", art_pct = "0.0", prep_pct = "0.0",
-    incidence = fmt_inc(draws$baseline),
-    abs_inc = sprintf("%.2f [%.2f, %.2f]", 0, 0, 0),
-    irr = "1.00 [1.00, 1.00]",
-    check.names = FALSE, stringsAsFactors = FALSE)
-
-  rows_use  <- make_rows(0)
-  rows_fund <- make_rows(n_block)
-  all_rows  <- rbind(baseline_row, rows_use, rows_fund)
-
-  output_table <- data.frame(
-    `Scenario` = all_rows$Scenario,
-    `ART Reduction (\\%)`  = all_rows$art_pct,
-    `PrEP Reduction (\\%)` = all_rows$prep_pct,
-    `Mean HIV Incidence per 100 p.y. [95\\% PPI]` = all_rows$incidence,
-    `Absolute Increase per 100 p.y. [95\\% PPI]`  = all_rows$abs_inc,
-    `Incidence Risk Ratio [95\\% PPI]` = all_rows$irr,
-    check.names = FALSE, stringsAsFactors = FALSE)
+  # Plain, un-padded strings for the returned value and the tracked CSV.
+  output_table <- build_table(align_ci = FALSE)
 
   # ---- LaTeX table with two grouped blocks, landscape -----------------------
-  # Escape the literal "%" in scenario labels for LaTeX (raw % starts a comment);
-  # the returned/CSV table keeps the plain "%".
-  latex_df <- output_table
+  # Phantom-padded CI columns so decimals line up; escape the literal "%" in
+  # scenario labels for LaTeX (raw % starts a comment). The returned/CSV table
+  # keeps the plain, un-padded strings.
+  latex_df <- build_table(align_ci = TRUE)
   latex_df$Scenario <- gsub("%", "\\\\%", latex_df$Scenario)
   latex_table <- kable(latex_df,
                        format = "latex",
                        booktabs = TRUE,
                        escape = FALSE,
-                       align = c("l", "r", "r", "l", "l", "l"),
+                       align = c("l", "r", "r", "r", "r", "r"),
                        caption = "HIV incidence outcomes under intervention-use and government-funding reductions") %>%
     kable_styling(latex_options = c("scale_down", "hold_position"),
                   full_width = FALSE) %>%
