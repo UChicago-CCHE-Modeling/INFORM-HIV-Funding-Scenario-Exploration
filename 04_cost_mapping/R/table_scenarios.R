@@ -195,6 +195,37 @@ create_funding_scenario_table <- function(gp_incidence_fit,
               bold = TRUE, latex_gap_space = "0.6em") %>%
     landscape()
 
+  # Explanatory footer: acronyms spelled out and every column defined. Injected
+  # as raw LaTeX (not kableExtra::footnote(), which drops backslashes and needs
+  # the threeparttable package) so it renders full-width below the table and is
+  # not shrunk by scale_down. Placed inside the table environment, before the
+  # caption/label survive at the bottom.
+  note <- paste0(
+    "\\vspace{0.4em}\n",
+    "{\\footnotesize\\begin{minipage}{\\linewidth}\n",
+    "\\emph{Abbreviations:} ART, antiretroviral therapy; PrEP, ",
+    "pre-exposure prophylaxis; HIV, human immunodeficiency virus; ",
+    "p.y., person-years; PPI, posterior predictive interval; ",
+    "IRR, incidence risk ratio.\\\\[0.3em]\n",
+    "All quantities are HIV incidence outcomes at the 10-year horizon, ",
+    "reported as the mean with a 95\\% PPI pooled across the 100 calibrated ",
+    "model checkpoints. \\emph{ART Use Reduction} and \\emph{PrEP Use Reduction} ",
+    "are the reductions in intervention use (coverage) fed to the model: in ",
+    "block A they equal the labelled reduction, whereas in block B they are the ",
+    "smaller reductions in use implied by the labelled \\emph{funding} reduction ",
+    "through the cost model, because a funding cut of a given fraction lowers ",
+    "coverage by less than that fraction (the effect is smallest for PrEP, a ",
+    "larger share of whose access is privately financed). ",
+    "\\emph{Mean HIV Incidence} is new HIV infections per 100 person-years. ",
+    "\\emph{Absolute Increase} is the difference in incidence from the baseline ",
+    "(no-cut) scenario, in cases per 100 person-years. ",
+    "\\emph{Incidence Risk Ratio} is the ratio of scenario incidence to baseline ",
+    "incidence; a value of 1 indicates no change. Both blocks share the single ",
+    "baseline row.\n",
+    "\\end{minipage}}\n")
+  latex_table <- sub("\\end{table}", paste0(note, "\\end{table}"),
+                     latex_table, fixed = TRUE)
+
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
   tex_file <- file.path(output_dir, "funding_scenarios_table.tex")
   writeLines(latex_table, tex_file)
