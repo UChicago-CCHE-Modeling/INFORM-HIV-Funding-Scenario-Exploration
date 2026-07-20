@@ -186,9 +186,11 @@ write.csv(forest_summary,
 ribbon_heatmap <- plot_ribbon_heatmap_panel(
   gp_incidence_fit = gp_incidence_fit,
   grid_scenarios = model_proportions_mean_incidence,
+  art_cov_per_funding = art_cov_per_funding,
+  prep_cov_per_funding = prep_cov_per_funding,
   reduction_level = 0.40,
   heatmap_max = 50,
-  rr_breaks = seq(1, 3, 0.25),
+  rr_breaks = seq(1, 2.5, 0.25),
   n_samples_per_checkpoint = p$n_samples_per_checkpoint,
   common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
   save_path = paste0(plots_folder_name, "incidence_ribbon_heatmap_panel"))

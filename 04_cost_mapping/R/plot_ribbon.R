@@ -215,7 +215,8 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
 #'   (default 0.40), mapped to coverage via the per-funding factors above.
 #' @param heatmap_max Upper bound (percent) for both heatmap axes (default 50).
 #' @param rr_breaks Contour/fill breaks for the risk-ratio bands (default
-#'   seq(1, 3, 0.25)).
+#'   seq(1, 2.5, 0.25), which covers the risk-ratio range within the 0-50%
+#'   window; higher bands would be empty and overflow the horizontal legend).
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
 #' @param common_random_numbers Passed to the ribbon panel (default TRUE).
 #' @param font Preferred font family; falls back to "sans" if unavailable.
@@ -231,7 +232,7 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
                                       prep_cov_per_funding,
                                       reduction_level = 0.40,
                                       heatmap_max = 50,
-                                      rr_breaks = seq(1, 3, 0.25),
+                                      rr_breaks = seq(1, 2.5, 0.25),
                                       n_samples_per_checkpoint = 50,
                                       common_random_numbers = TRUE,
                                       font = "PT Sans",
@@ -241,6 +242,24 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
                                       dpi = 300) {
 
   chosen_font <- resolve_font(font)
+
+  # Single explicit theme applied IDENTICALLY to both panels so their fonts,
+  # sizes and weights match exactly. theme_rand() is an incomplete theme, so on
+  # its own panel B keeps plot_contour_heatmap()'s larger (size 14, bold) axis
+  # text -- this override pins both panels to the same non-bold sizes and trims
+  # theme_rand's large bottom legend.box.margin (b = 24) that padded the figure.
+  base_size <- 12
+  shared_theme <- theme(
+    text          = element_text(family = chosen_font, size = base_size),
+    axis.title    = element_text(family = chosen_font, size = base_size, face = "plain"),
+    axis.text     = element_text(family = chosen_font, size = base_size, face = "plain"),
+    legend.text   = element_text(family = chosen_font, size = base_size - 1),
+    legend.title  = element_text(family = chosen_font, size = base_size, face = "plain"),
+    legend.position   = "bottom",
+    legend.box.margin = margin(t = 4, r = 0, b = 0, l = 0),
+    plot.margin       = margin(t = 8, r = 8, b = 4, l = 8),
+    plot.background   = element_rect(fill = "white", color = NA),
+    panel.background  = element_rect(fill = "white", color = NA))
 
   # ---- Panel A: incidence-trajectory ribbon (build without saving) ----------
   # Government-funding framing (to pair with panel B): the labelled reduction is
@@ -255,7 +274,7 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     common_random_numbers = common_random_numbers,
     font = font,
     save_path = NULL)
-  p_a <- ribbon$plot
+  p_a <- ribbon$plot + shared_theme
 
   # ---- Panel B: risk-ratio contour heatmap, 0-50% axes, 0.5-wide bands ------
   # Restrict to the plotted window (small epsilon so a floating-point boundary
@@ -271,20 +290,38 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     funding_reduction_scenarios = grid_window,
     mean_var = "incidence_risk_ratio",
     pct_change_var = "relative_incidence_risk_ratio_change_pct",
-    var_name = "Mean Incidence Risk Ratio\nat Year 10",
+    var_name = "Mean incidence risk ratio at year 10",
     baseline_value = 1.0,
     breaks = rr_breaks)
   # No coord_fixed: let panel B stretch to fill its column so both panels
-  # occupy the same horizontal space. Re-apply theme_rand (a complete theme,
-  # so it overrides plot_contour_heatmap's bold/large theme_minimal text) so
-  # panel B uses the SAME font (PT Sans), weight (not bold) and sizes as panel
-  # A. Keep the grid off (the filled contours read better without it).
+  # occupy the same horizontal space. Apply theme_rand first (RAND base), then
+  # the shared override so panel B matches panel A's font/size/weight exactly.
+  # Sentence-case axis titles to match panel A. Lay the discrete risk-ratio
+  # bands out in a single horizontal row along the bottom (one-line title above)
+  # so the legend consumes width rather than vertical plot height; centre the
+  # legend so the long title is not clipped at the figure edge.
   p_b <- heatmap$p_sim_heatmap +
+    labs(x = "ART govt. funding reduction (%)",
+         y = "PrEP govt. funding reduction (%)") +
+    # Re-apply the fill scale with drop = TRUE so only the bands actually
+    # present in the 0-50% window get legend keys. plot_contour_heatmap() uses
+    # drop = FALSE (to show every band elsewhere), which here leaves a phantom
+    # trailing key with no swatch that overflows the row.
+    scale_fill_viridis_d(option = "plasma", drop = TRUE,
+                         name = "Mean incidence risk ratio at year 10") +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE,
+                               title.position = "top", title.hjust = 0.5)) +
     theme_rand(font = chosen_font) +
     theme(panel.grid = element_blank(),
-          plot.margin = margin(t = 8, r = 8, b = 4, l = 8),
-          plot.background = element_rect(fill = "white", color = NA),
-          panel.background = element_rect(fill = "white", color = NA))
+          legend.justification = "center") +
+    shared_theme +
+    # Tighten the swatches, text and inter-key spacing so all six risk-ratio
+    # bands fit in a single centred row under panel B (its column is only half
+    # the figure width, so the default key size overflows the right edge).
+    theme(legend.text     = element_text(family = chosen_font, size = base_size - 2),
+          legend.key.width = unit(0.45, "cm"),
+          legend.key.height = unit(0.45, "cm"),
+          legend.key.spacing.x = unit(0.15, "cm"))
 
   # ---- Assemble ------------------------------------------------------------
   p <- (p_a | p_b) +
