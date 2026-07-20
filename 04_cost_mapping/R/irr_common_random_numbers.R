@@ -149,6 +149,78 @@ compute_scenario_draws_crn <- function(newX_native,
   list(incidence = incidence, irr = irr, baseline = baseline)
 }
 
+#' Surrogate scenario trajectory draws: per-tick difference from baseline (CRN).
+#'
+#' Like compute_scenario_draws_crn(), but keeps the FULL per-tick trajectory
+#' instead of collapsing over ticks. For each query point it returns the
+#' surrogate posterior draws of the incidence difference from baseline
+#' (scenario - baseline) at every trajectory tick, plus the absolute scenario
+#' incidence trajectory. The baseline is the surrogate prediction at (0,0); with
+#' common random numbers the baseline and scenario draws share predictive noise
+#' within each checkpoint, so the difference reflects only the scenario effect
+#' (the baseline self-difference collapses to exactly 0 at every tick). This
+#' feeds the incidence-trajectory ribbon plot.
+#'
+#' @param newX_native Query points in native coverage-reduction scale
+#'   (n_points x 2). Negative values are reductions (the surrogate's native input).
+#' @param gp_fit_list List of per-checkpoint incidence surrogates.
+#' @param n_samples_per_checkpoint Draws per checkpoint.
+#' @param baseline_point Native coordinates of the baseline (default c(0, 0)).
+#' @param common_random_numbers If TRUE (default), baseline and scenario share
+#'   the same predictive draws within each checkpoint so shared noise cancels.
+#' @return List with `diff`, `irr`, and `incidence`, each a list of length
+#'   n_points; each element is an n_ticks x (n_samples_per_checkpoint *
+#'   n_checkpoints) matrix. `diff` holds the (scenario - baseline) differences,
+#'   `irr` the (scenario / baseline) incidence risk ratios, and `incidence` the
+#'   absolute scenario incidence trajectory draws. Under CRN the baseline
+#'   self-ratio is exactly 1 (and self-difference exactly 0) at every tick.
+compute_scenario_trajectory_draws_crn <- function(newX_native,
+                                                  gp_fit_list,
+                                                  n_samples_per_checkpoint,
+                                                  baseline_point = c(0, 0),
+                                                  common_random_numbers = TRUE) {
+  if (!is.matrix(newX_native)) newX_native <- matrix(newX_native, nrow = 1)
+  n_points <- nrow(newX_native)
+  n_ckpt   <- length(gp_fit_list)
+  n_draws  <- n_samples_per_checkpoint * n_ckpt
+  n_ticks  <- nrow(gp_fit_list[[1]]$Kmat)
+
+  # Baseline first, scenarios after; map to the [0, 1] GP scale.
+  allX_native <- rbind(baseline_point, newX_native)
+  allX <- apply(allX_native, 2, function(x) (x + 0.75) / 0.75)
+  if (!is.matrix(allX)) allX <- matrix(allX, nrow = 1)
+
+  diff_list <- lapply(1:n_points, function(k) matrix(NA, nrow = n_ticks, ncol = n_draws))
+  irr_list  <- lapply(1:n_points, function(k) matrix(NA, nrow = n_ticks, ncol = n_draws))
+  inc_list  <- lapply(1:n_points, function(k) matrix(NA, nrow = n_ticks, ncol = n_draws))
+
+  for (s in 1:n_ckpt) {
+    gp_list <- gp_fit_list[[s]]
+    ngp     <- length(gp_list$gps)
+
+    # One shared standard-normal block per checkpoint enables CRN across points.
+    z <- if (common_random_numbers) {
+      matrix(rnorm(ngp * n_samples_per_checkpoint), nrow = ngp)
+    } else {
+      NULL
+    }
+
+    Y <- .predict_trajectories_shared_z(allX, gp_list, n_samples_per_checkpoint, z = z)
+    # Y: n_ticks x (1 + n_points) x n_samples. Column 1 is the baseline.
+    base <- matrix(Y[, 1, ], nrow = n_ticks)  # n_ticks x n_samples
+
+    idx <- ((s - 1) * n_samples_per_checkpoint + 1):(s * n_samples_per_checkpoint)
+    for (k in 1:n_points) {
+      scen <- matrix(Y[, k + 1, ], nrow = n_ticks)  # n_ticks x n_samples
+      inc_list[[k]][, idx]  <- scen
+      diff_list[[k]][, idx] <- scen - base
+      irr_list[[k]][, idx]  <- scen / base
+    }
+  }
+
+  list(diff = diff_list, irr = irr_list, incidence = inc_list)
+}
+
 #' Summarise draws (per row) into mean and a credible interval.
 #'
 #' @param draws Numeric matrix (n_points x n_draws) or a single vector.

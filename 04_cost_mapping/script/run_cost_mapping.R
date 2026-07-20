@@ -27,6 +27,7 @@ source(file.path(R_DIR, "irr_common_random_numbers.R"))
 source(file.path(R_DIR, "plot_heatmap.R"))
 source(file.path(R_DIR, "plot_bar.R"))
 source(file.path(R_DIR, "plot_forest.R"))
+source(file.path(R_DIR, "plot_ribbon.R"))
 source(file.path(R_DIR, "table_scenarios.R"))
 
 # Common random numbers for the incidence risk ratio: when TRUE, the baseline
@@ -171,6 +172,31 @@ forest_summary <- forest_summary[order(forest_summary$scenario,
                                         forest_summary$reduction), ]
 write.csv(forest_summary,
           paste0(plots_folder_name, "forest_incidence_risk_ratio_funding.csv"),
+          row.names = FALSE)
+
+# ---- Combined ribbon + heatmap panel (main-text figure) -------------------
+# Two-panel figure. Panel A: increase in mean HIV incidence from baseline over
+# years 0-10 under a single direct intervention-use reduction level (40%) for
+# two scenarios (ART-only and PrEP-only), each with 50% and 95% credible
+# ribbons (identity coverage mapping, so the labelled % is the coverage
+# reduction; same common random numbers as the forest plot). Panel B: the
+# government-funding mean-incidence-risk-ratio contour heatmap (same code as
+# heatmap_risk_ratio_main_year10.png) with both axes restricted to 0-50% and
+# fixed 0.25-wide colour bands from a risk ratio of 1 up to 3.
+ribbon_heatmap <- plot_ribbon_heatmap_panel(
+  gp_incidence_fit = gp_incidence_fit,
+  grid_scenarios = model_proportions_mean_incidence,
+  reduction_level = 0.40,
+  heatmap_max = 50,
+  rr_breaks = seq(1, 3, 0.25),
+  n_samples_per_checkpoint = p$n_samples_per_checkpoint,
+  common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
+  save_path = paste0(plots_folder_name, "incidence_ribbon_heatmap_panel"))
+
+# Summary CSV of the ribbon panel results (mean + 50%/95% credible bounds per
+# scenario x year), so the values behind panel A are tracked in git.
+write.csv(as.data.frame(ribbon_heatmap$ribbon_data),
+          paste0(plots_folder_name, "incidence_trajectory_ribbon.csv"),
           row.names = FALSE)
 
 # ---- Bar plots of selected policy scenarios -------------------------------

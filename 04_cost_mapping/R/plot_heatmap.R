@@ -8,15 +8,19 @@ library(shadowtext)
 # Contour Heatmap
 #------------------------------------------------
 
-plot_contour_heatmap <- function(funding_reduction_scenarios, mean_var, pct_change_var, var_name, n_bins=9, baseline_value=NULL, text_size=3.5) {
+plot_contour_heatmap <- function(funding_reduction_scenarios, mean_var, pct_change_var, var_name, n_bins=9, baseline_value=NULL, text_size=3.5, breaks=NULL, axis_limits=NULL) {
   # Determine if we're plotting a risk ratio (which doesn't need "per 100 PY" units)
   is_risk_ratio <- grepl("ratio|rr", mean_var, ignore.case = TRUE) || grepl("ratio|rr", var_name, ignore.case = TRUE)
 
-  # Calculate breaks for contour intervals
-  # If baseline_value provided, use it as the starting point; otherwise use data min
-  data_range <- range(funding_reduction_scenarios[[mean_var]], na.rm = TRUE)
-  breaks_start <- if (!is.null(baseline_value)) baseline_value else data_range[1]
-  breaks <- seq(breaks_start, data_range[2], length.out = n_bins + 1)
+  # Calculate breaks for contour intervals.
+  # An explicit `breaks` vector (e.g. fixed 0.5-wide bands) overrides the
+  # data-driven binning; otherwise start at baseline_value (or the data min) and
+  # split the range into n_bins equal intervals.
+  if (is.null(breaks)) {
+    data_range <- range(funding_reduction_scenarios[[mean_var]], na.rm = TRUE)
+    breaks_start <- if (!is.null(baseline_value)) baseline_value else data_range[1]
+    breaks <- seq(breaks_start, data_range[2], length.out = n_bins + 1)
+  }
 
   # Heatmap visualization
   p_sim_heatmap <- ggplot(
@@ -30,15 +34,18 @@ plot_contour_heatmap <- function(funding_reduction_scenarios, mean_var, pct_chan
   geom_contour(color = "white", alpha = 0.3, breaks = breaks) +
     scale_fill_viridis_d(
       option = "plasma",
+      drop = FALSE,
       name = if (is_risk_ratio) var_name else paste0(var_name, "\n(per 100 PY)")
     ) +
     scale_x_continuous(
       labels = function(x) paste0(x, "%"),
-      expand = c(0, 0)
+      expand = c(0, 0),
+      limits = axis_limits
     ) +
     scale_y_continuous(
       labels = function(x) paste0(x, "%"),
-      expand = c(0, 0)
+      expand = c(0, 0),
+      limits = axis_limits
     ) +
     labs(
       x = "ART Govt. Funding Reduction (%)",
