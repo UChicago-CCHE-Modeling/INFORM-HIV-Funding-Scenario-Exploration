@@ -30,14 +30,50 @@ proportion_to_dollar_reduction <- function(P,
 #' at the gamma floor, and joins in surrogate incidence to derive IRR and
 #' relative change vs. the no-cut baseline.
 #'
+#' The incidence surface must be keyed to the SAME cost-model funding->coverage
+#' mapping the forest plot, Table 1, and the ribbon panel use: a funding-cut
+#' fraction f maps to a coverage reduction f * (P_baseline - gamma) / P_baseline
+#' (paper Eqs. 1-2). When `gp_incidence_fit`/`predict_composite_fn` are supplied
+#' the surrogate is re-queried at those cost-model-mapped native reduction points
+#' and year10_mean_incidence/year10_sd_incidence are overwritten before the IRR
+#' block, so every heatmap/bar/CSV consumer is cost-model-consistent. If they are
+#' NULL the incoming `model_incidence` values are used as-is (the legacy flat
+#' 0.75 * funding coverage proxy, kept for back-compatibility).
+#'
 #' @param model_incidence Data frame with ART_pct_reduction, PrEP_pct_reduction,
 #'   year10_mean_incidence, year10_sd_incidence (from surrogate grid).
 #' @param p Parameter list from cost_mapping_params().
+#' @param gp_incidence_fit Composite incidence surrogate (optional; enables the
+#'   cost-model re-query of the incidence surface).
+#' @param predict_composite_fn predict_hiv_composite_surrogate helper (optional).
 #' @return The augmented, deduplicated funding-scenario data frame.
-build_funding_scenarios <- function(model_incidence, p) {
+build_funding_scenarios <- function(model_incidence, p,
+                                    gp_incidence_fit = NULL,
+                                    predict_composite_fn = NULL) {
   ngrid  <- p$ngrid
   fund_X <- seq(1, 0, length.out = ngrid)
   funding_reduction_pct <- expand.grid(fund_X, fund_X)
+
+  # Re-key the incidence surface to the cost-model funding->coverage mapping so
+  # the heatmap agrees with the forest plot, Table 1, and the ribbon panel. A
+  # funding cut of fraction f reduces coverage by f * (P_baseline - gamma) / P
+  # (the surrogate's native input is a fractional reduction, negative = cut).
+  if (!is.null(gp_incidence_fit) && !is.null(predict_composite_fn)) {
+    art_cov_per_funding  <- (p$P_ART_baseline  - p$gamma_ART)  / p$P_ART_baseline
+    prep_cov_per_funding <- (p$P_PrEP_baseline - p$gamma_PrEP) / p$P_PrEP_baseline
+
+    newX_native <- cbind(
+      -funding_reduction_pct[, 1] * art_cov_per_funding,
+      -funding_reduction_pct[, 2] * prep_cov_per_funding)
+
+    pred <- predict_composite_fn(
+      as.matrix(newX_native), gp_incidence_fit,
+      n_samples_per_checkpoint = p$n_samples_per_checkpoint)
+
+    tick <- p$horizon_tick
+    model_incidence$year10_mean_incidence <- apply(pred[tick, , ], 1, mean)
+    model_incidence$year10_sd_incidence   <- apply(pred[tick, , ], 1, sd)
+  }
 
   model_incidence$P_ART_new <- pmin(1, pmax(
     p$gamma_ART,

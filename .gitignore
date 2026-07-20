@@ -8,4 +8,6 @@ Rplots.pdf
 # figure (git add -f) only when its results have actually changed.
 04_cost_mapping/output/*.png
 04_cost_mapping/output/*.pdf
+04_cost_mapping/archive/output/*.png
+04_cost_mapping/archive/output/*.pdf
 .*DS_store

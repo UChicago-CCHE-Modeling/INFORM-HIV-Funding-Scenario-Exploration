@@ -1,28 +1,28 @@
 # =============================================================================
 # Incidence-trajectory ribbon plot (main-text figure)
 # -----------------------------------------------------------------------------
-# Shows how the HIV incidence increase from baseline evolves over the projection
-# horizon (years 0-10 since the intervention) under two intervention-use
-# reduction scenarios, each at a single reduction level (default 40%):
-#   - ART use reduction only (PrEP held at baseline)
-#   - PrEP use reduction only (ART held at baseline)
+# Shows how the mean HIV incidence risk ratio (scenario / no-reduction baseline)
+# evolves over the projection horizon (years 0-10 since the intervention) under
+# three reduction scenarios that cut ART and PrEP simultaneously by 10%, 20% and
+# 40% (default).
 #
-# The labelled percentage is the coverage (intervention-use) reduction fed
-# directly to the surrogate (identity mapping; the per-unit factors default to
-# 1). Passing the cost-model factors instead would reinterpret the labels as
-# government funding reductions. For each scenario the surrogate is queried over
-# the whole trajectory and the difference from the (0,0) no-reduction baseline
-# is summarised into a posterior mean plus 50% and 95% credible ribbons. Common
-# random numbers (see R/irr_common_random_numbers.R) share the baseline and
-# scenario predictive draws within each checkpoint, so the ribbons reflect
-# genuine scenario effects rather than the surrogate's raw predictive noise --
-# the same variance-reduction trick used for the forest plot.
+# The labelled percentage is a reduction fed to the surrogate after mapping to
+# coverage via the supplied per-unit factors (identity by default, so the label
+# IS the coverage reduction; passing the cost-model factors reinterprets the
+# labels as government funding reductions, which is how the combined figure uses
+# it). For each scenario the surrogate is queried over the whole trajectory and
+# the ratio to the (0,0) baseline is summarised into a posterior mean plus 50%
+# and 95% credible ribbons. Common random numbers (see
+# R/irr_common_random_numbers.R) share the baseline and scenario predictive
+# draws within each checkpoint, so the ribbons reflect genuine scenario effects
+# rather than the surrogate's raw predictive noise -- the same variance-
+# reduction trick used for the forest plot.
 #
-# The mechanism source is pred_incidence_diff.png (surrogate trajectory draws),
-# but here we show only the mean and the ribbons (no individual sample lines),
-# and we colour the scenarios with the forest-plot palette. Styling matches the
-# forest plot: randplot::theme_rand, PT Sans with a graceful fallback, no plot
-# title, white background, vector PDF output.
+# We show only the mean and the ribbons (no individual sample lines). Each
+# ribbon is coloured by the heatmap band its terminal-year risk ratio falls in
+# (see .band_color_fn), so this panel and the risk-ratio heatmap share a colour
+# language. Styling matches the forest plot: randplot::theme_rand, PT Sans with
+# a graceful fallback, no plot title, white background, vector PDF output.
 # =============================================================================
 
 library(ggplot2)
@@ -34,6 +34,26 @@ library(patchwork)
 # resolve_font() is defined in R/plot_forest.R (sourced by run_cost_mapping.R).
 # plot_contour_heatmap() is defined in R/plot_heatmap.R (also sourced first).
 
+# ---- Heatmap band -> colour map ----------------------------------------------
+# The heatmap fills its contour bands (breaks e.g. seq(1, 2.5, 0.25)) with the
+# discrete viridis "plasma" palette -- exactly what scale_fill_viridis_d() /
+# geom_contour_filled() assign. Return a function that maps any risk-ratio value
+# to the colour of the band [breaks[i], breaks[i+1]) it falls in, so panel A's
+# ribbons can be coloured to match the band their terminal risk ratio sits in on
+# panel B. Pulling the colours from viridisLite (rather than hard-coding) keeps
+# the two panels in lockstep if the breaks change. Values at/below the first
+# break take the first band's colour; values above the last take the last.
+.band_color_fn <- function(breaks) {
+  n_bands <- length(breaks) - 1L
+  band_cols <- viridisLite::viridis(n_bands, option = "plasma")
+  function(x) {
+    # left.open matches geom_contour_filled's (a, b] bands; all.inside clamps
+    # values at/below the first break or above the last into the end bands.
+    idx <- findInterval(x, breaks, left.open = TRUE, all.inside = TRUE)
+    band_cols[idx]
+  }
+}
+
 # ---- Ribbon data for one scenario set ----------------------------------------
 # Build the two scenarios at the single reduction level, map the labelled
 # reduction to a coverage reduction with the supplied per-unit factors (identity
@@ -43,20 +63,19 @@ library(patchwork)
 .ribbon_data <- function(gp_incidence_fit,
                          art_cov_per_unit,
                          prep_cov_per_unit,
-                         reduction_level,
+                         reduction_levels,
                          years,
                          n_samples_per_checkpoint,
                          common_random_numbers,
                          inner_probs,
                          outer_probs) {
-  # Scenario labels include the reduction level, e.g. "40% PrEP reduction".
-  pct_lab <- paste0(round(reduction_level * 100), "%")
-  prep_lab <- paste(pct_lab, "PrEP reduction")
-  art_lab  <- paste(pct_lab, "ART reduction")
-  scenarios <- rbind(
-    data.table(scenario = prep_lab, art_red = 0,               prep_red = reduction_level),
-    data.table(scenario = art_lab,  art_red = reduction_level, prep_red = 0)
-  )
+  # One scenario per reduction level, each cutting ART and PrEP simultaneously
+  # by that level (e.g. "10% reduction" = a 10% cut to both). Labels ordered
+  # ascending so the legend and the palette line up.
+  labs <- paste0(round(reduction_levels * 100), "% reduction")
+  scenarios <- data.table(scenario  = labs,
+                          art_red    = reduction_levels,
+                          prep_red   = reduction_levels)
   # Map labelled reduction -> coverage reduction (identity for the direct-use
   # framing; the cost-model factors for the funding framing).
   scenarios[, art_cov  := art_red  * art_cov_per_unit]
@@ -85,19 +104,18 @@ library(patchwork)
       hi50     = apply(d, 1, quantile, probs = inner_probs[2]))
   })
   ribbon_dt <- rbindlist(rows)
-  ribbon_dt[, scenario := factor(scenario, levels = c(prep_lab, art_lab))]
+  ribbon_dt[, scenario := factor(scenario, levels = labs)]
   ribbon_dt[]
 }
 
 #' Incidence-trajectory ribbon plot
 #'
-#' Plots the increase in mean HIV incidence from the no-reduction baseline over
-#' the projection horizon for two intervention-use reduction scenarios (ART-only
-#' and PrEP-only), each at a single reduction level. Each scenario is drawn as a
-#' coloured mean line with a darker 50% credible ribbon and a lighter 95%
-#' credible ribbon; individual posterior sample trajectories are not shown.
-#' Scenario draws use common random numbers (see
-#' compute_scenario_trajectory_draws_crn()).
+#' Plots the mean HIV incidence risk ratio (scenario / no-reduction baseline)
+#' over the projection horizon for reduction scenarios that cut ART and PrEP
+#' simultaneously by each supplied level. Each scenario is drawn as a coloured
+#' mean line with a darker 50% credible ribbon and a lighter 95% credible
+#' ribbon; individual posterior sample trajectories are not shown. Scenario
+#' draws use common random numbers (see compute_scenario_trajectory_draws_crn()).
 #'
 #' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
 #' @param art_cov_per_unit Coverage-reduction fraction per unit labelled ART
@@ -105,8 +123,8 @@ library(patchwork)
 #'   the coverage reduction), or the cost-model factor
 #'   (P_ART_baseline - gamma_ART) / P_ART_baseline for a funding reduction.
 #' @param prep_cov_per_unit Same, for PrEP.
-#' @param reduction_level Reduction fraction applied in every scenario
-#'   (default 0.40 = a 40% reduction).
+#' @param reduction_levels Reduction fractions, one scenario each, cutting ART
+#'   and PrEP simultaneously by that fraction (default c(0.10, 0.20, 0.40)).
 #' @param years Numeric vector of the trajectory ticks' labels; length must equal
 #'   the surrogate's tick count (defaults to 0:10, years since the intervention).
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
@@ -114,6 +132,10 @@ library(patchwork)
 #'   inner (50%) and outer (95%) credible ribbons.
 #' @param common_random_numbers If TRUE (default), baseline and scenario draws
 #'   share predictive randomness within each checkpoint (see the CRN module).
+#' @param band_color_fn Optional function mapping a numeric risk ratio to a fill
+#'   colour, used to colour each ribbon by the heatmap band its terminal-year
+#'   mean risk ratio falls in (so panels A and B share a colour language). When
+#'   NULL, the RAND categorical palette is used instead.
 #' @param font Preferred font family; falls back to "sans" if unavailable.
 #' @param save_path Path without extension; saves "<save_path>.pdf" (vector,
 #'   font-embedded) and "<save_path>.png" (raster preview) when provided.
@@ -125,12 +147,13 @@ library(patchwork)
 plot_incidence_ribbon <- function(gp_incidence_fit,
                                   art_cov_per_unit = 1,
                                   prep_cov_per_unit = 1,
-                                  reduction_level = 0.40,
+                                  reduction_levels = c(0.10, 0.20, 0.40),
                                   years = 0:10,
                                   n_samples_per_checkpoint = 50,
                                   inner_probs = c(0.25, 0.75),
                                   outer_probs = c(0.025, 0.975),
                                   common_random_numbers = TRUE,
+                                  band_color_fn = NULL,
                                   font = "PT Sans",
                                   save_path = NULL,
                                   width = 8.0,
@@ -143,7 +166,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
     gp_incidence_fit,
     art_cov_per_unit = art_cov_per_unit,
     prep_cov_per_unit = prep_cov_per_unit,
-    reduction_level = reduction_level,
+    reduction_levels = reduction_levels,
     years = years,
     n_samples_per_checkpoint = n_samples_per_checkpoint,
     common_random_numbers = common_random_numbers,
@@ -152,9 +175,21 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
 
   chosen_font <- resolve_font(font)
 
-  # RAND categorical palette keyed to the factor levels (PrEP first, then ART):
-  # green = PrEP, blue = ART (matches the forest plot).
-  pal <- setNames(c("#45aF84", "#597cbe"), levels(ribbon_dt$scenario))
+  # Colour each scenario by the heatmap band its terminal-year (last tick) mean
+  # risk ratio falls into, so a ribbon's colour matches the contour band its
+  # endpoint sits in on panel B. band_color_fn is derived from the same breaks +
+  # plasma palette as the heatmap (see .band_color_fn()); if absent, fall back
+  # to a RAND categorical palette so the function still works standalone.
+  levs <- levels(ribbon_dt$scenario)
+  if (!is.null(band_color_fn)) {
+    terminal <- ribbon_dt[year == max(year),
+                          .(mean = mean[1]), by = scenario]
+    setkey(terminal, scenario)
+    pal <- setNames(band_color_fn(terminal[levs, mean]), levs)
+  } else {
+    rand_cat <- c("#45aF84", "#597cbe", "#af61a7")
+    pal <- setNames(rand_cat[seq_along(levs)], levs)
+  }
 
   p <- ggplot(ribbon_dt, aes(x = year, group = scenario)) +
     # Null reference: no change from baseline (risk ratio = 1).
@@ -167,8 +202,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
     scale_color_manual(values = pal, name = NULL) +
     scale_fill_manual(values = pal, name = NULL) +
     scale_x_continuous(breaks = scales::breaks_width(2)) +
-    # Log y-axis (as in the forest plot) so ratios near 1 read clearly.
-    scale_y_log10(breaks = c(1, 1.5, 2, 2.5, 3, 4, 5)) +
+    scale_y_continuous() +
     labs(x = "Year",
          y = "Mean incidence risk ratio") +
     theme_rand(font = chosen_font) +
@@ -211,12 +245,18 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
 #'   reduction, (P_ART_baseline - gamma_ART) / P_ART_baseline. Panel A's ribbon
 #'   scenarios use this so both panels share the government-funding framing.
 #' @param prep_cov_per_funding Same, for PrEP.
-#' @param reduction_level Funding-reduction fraction for the ribbon scenarios
-#'   (default 0.40), mapped to coverage via the per-funding factors above.
+#' @param reduction_levels Funding-reduction fractions for the ribbon scenarios
+#'   (default c(0.10, 0.20, 0.40)); each cuts ART and PrEP simultaneously by
+#'   that fraction, mapped to coverage via the per-funding factors above.
 #' @param heatmap_max Upper bound (percent) for both heatmap axes (default 50).
 #' @param rr_breaks Contour/fill breaks for the risk-ratio bands (default
-#'   seq(1, 2.5, 0.25), which covers the risk-ratio range within the 0-50%
-#'   window; higher bands would be empty and overflow the horizontal legend).
+#'   seq(1, 2.25, 0.25)). The 0-50% window's IRR tops out just above 2, so this
+#'   gives exactly five fully-populated bands. Every band must contain data:
+#'   panel B renders with scale_fill_viridis_d(drop = TRUE), so an empty top band
+#'   would be dropped and the remaining bands re-interpolated to a DIFFERENT set
+#'   of plasma colours than .band_color_fn() (which colours the ribbons) assigns,
+#'   breaking the shared colour language. Keep the top break just above the
+#'   window's max IRR.
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
 #' @param common_random_numbers Passed to the ribbon panel (default TRUE).
 #' @param font Preferred font family; falls back to "sans" if unavailable.
@@ -230,9 +270,9 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
                                       grid_scenarios,
                                       art_cov_per_funding,
                                       prep_cov_per_funding,
-                                      reduction_level = 0.40,
+                                      reduction_levels = c(0.10, 0.20, 0.40),
                                       heatmap_max = 50,
-                                      rr_breaks = seq(1, 2.5, 0.25),
+                                      rr_breaks = seq(1, 2.25, 0.25),
                                       n_samples_per_checkpoint = 50,
                                       common_random_numbers = TRUE,
                                       font = "PT Sans",
@@ -264,14 +304,17 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
   # ---- Panel A: incidence-trajectory ribbon (build without saving) ----------
   # Government-funding framing (to pair with panel B): the labelled reduction is
   # a funding reduction mapped to coverage via the cost model, so pass the
-  # per-unit coverage factors rather than the identity default.
+  # per-unit coverage factors rather than the identity default. Colour each
+  # ribbon by the heatmap band its terminal risk ratio falls in (same rr_breaks
+  # + plasma palette as panel B) so the two panels share a colour language.
   ribbon <- plot_incidence_ribbon(
     gp_incidence_fit = gp_incidence_fit,
     art_cov_per_unit = art_cov_per_funding,
     prep_cov_per_unit = prep_cov_per_funding,
-    reduction_level = reduction_level,
+    reduction_levels = reduction_levels,
     n_samples_per_checkpoint = n_samples_per_checkpoint,
     common_random_numbers = common_random_numbers,
+    band_color_fn = .band_color_fn(rr_breaks),
     font = font,
     save_path = NULL)
   p_a <- ribbon$plot + shared_theme

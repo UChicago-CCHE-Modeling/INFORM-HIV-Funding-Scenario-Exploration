@@ -1,11 +1,18 @@
 # =============================================================================
 # Cost mapping
 # -----------------------------------------------------------------------------
-# Runs the cost-mapping pipeline: load parameters and the stage-03 surrogate,
-# predict the incidence surface, compute posterior predictive intervals, map
-# funding reductions to coverage outcomes, and write all figures and the
-# scenario table. Parameters are defined in R/parameters.R; the reusable
-# functions live in R/*.R. This script calls them in order.
+# Runs the cost-mapping pipeline and writes the three main-text outputs:
+#   - forest_incidence_risk_ratio_funding  (two-panel forest plot + CSV)
+#   - incidence_ribbon_heatmap_panel        (ribbon + heatmap panel + ribbon CSV)
+#   - funding_scenarios_table               (Table 1 .tex + CSV)
+# Load parameters and the stage-03 surrogate, map funding reductions to coverage
+# outcomes, and produce those figures and the table. Parameters are defined in
+# R/parameters.R; the reusable functions live in R/*.R. This script calls them
+# in order.
+#
+# The heatmaps, discrete tile matrices, bar plots, and the full grid CSV that
+# this pipeline used to emit now live in ../archive (run
+# archive/script/run_cost_mapping_extras.R to regenerate them).
 #
 # Run with script/ as the working directory:
 #   cd 04_cost_mapping/script && Rscript run_cost_mapping.R
@@ -24,8 +31,7 @@ source(file.path(R_DIR, "parameters.R"))
 source(file.path(R_DIR, "cost_model.R"))
 source(file.path(R_DIR, "outcomes.R"))
 source(file.path(R_DIR, "irr_common_random_numbers.R"))
-source(file.path(R_DIR, "plot_heatmap.R"))
-source(file.path(R_DIR, "plot_bar.R"))
+source(file.path(R_DIR, "plot_heatmap.R"))  # plot_contour_heatmap() for the panel
 source(file.path(R_DIR, "plot_forest.R"))
 source(file.path(R_DIR, "plot_ribbon.R"))
 source(file.path(R_DIR, "table_scenarios.R"))
@@ -50,111 +56,30 @@ p <- cost_mapping_params()
 cat(sprintf("Baseline ART coverage: %.2f%%\n",  p$P_ART_baseline  * 100))
 cat(sprintf("Baseline PrEP coverage: %.2f%%\n", p$P_PrEP_baseline * 100))
 
-# ---- Surrogate incidence surface + posterior predictive intervals ---------
+# ---- Surrogate incidence surface ------------------------------------------
 # The grid prediction draws from the surrogate's predictive distribution, so pin
-# a seed here for reproducible heatmaps, PPIs, and the tracked results CSVs.
-# (The forest plot and table CRN paths set their own seed downstream.)
+# a seed here for reproducibility. (The forest plot, ribbon panel, and table CRN
+# paths set their own seed downstream.) The grid feeds the panel-B heatmap.
 set.seed(12345)
 grid <- predict_incidence_grid(p, gp_incidence_fit, predict_hiv_composite_surrogate)
-ppi  <- compute_ppi(grid, p)
-incidence_ci_results       <- ppi$incidence_ci_results
-relative_change_ci_results <- ppi$relative_change_ci_results
-irr_ci_results             <- ppi$irr_ci_results
 
 # ---- Funding -> coverage -> incidence outcomes ----------------------------
-model_proportions_mean_incidence <- build_funding_scenarios(grid$model_incidence, p)
+model_proportions_mean_incidence <- build_funding_scenarios(
+  grid$model_incidence, p,
+  gp_incidence_fit = gp_incidence_fit,
+  predict_composite_fn = predict_hiv_composite_surrogate)
 baseline_incidence <- attr(model_proportions_mean_incidence, "baseline_incidence")
 cat(sprintf("Baseline incidence (0%% ART, 0%% PrEP reduction): %.4f per 100 PY\n",
             baseline_incidence))
 
-# Summary CSV of the full grid-based cost-mapping surface (the deduplicated
-# funding->coverage->incidence table that feeds the heatmaps and the scenario
-# table), so these values are tracked in git across changes.
-write.csv(as.data.frame(model_proportions_mean_incidence),
-          paste0(plots_folder_name, "cost_mapping_grid_results.csv"),
-          row.names = FALSE)
-
-# ---------------------------------------------------------------------------
-# Figures
-# ---------------------------------------------------------------------------
-
-# ---- Heatmaps: discrete tile matrices -------------------------------------
-tile_heatmap_incidence <- plot_tile_matrix_heatmap(
-  funding_reduction_scenarios = model_proportions_mean_incidence,
-  mean_var = "year10_mean_incidence",
-  pct_change_var = "relative_incidence_change_pct",
-  var_name = "Mean Incidence")
-
-tile_heatmap_risk_ratio <- plot_tile_matrix_heatmap(
-  funding_reduction_scenarios = model_proportions_mean_incidence,
-  mean_var = "incidence_risk_ratio",
-  pct_change_var = "relative_incidence_risk_ratio_change_pct",
-  var_name = "Mean Incidence\nRisk Ratio")
-
-# ---- Heatmaps: contour, with iso-budget lines -----------------------------
-contour_heatmap_incidence <- plot_contour_heatmap(
-  funding_reduction_scenarios = model_proportions_mean_incidence,
-  mean_var = "year10_mean_incidence",
-  pct_change_var = "relative_incidence_change_pct",
-  var_name = "Mean Incidence",
-  baseline_value = baseline_incidence)
-
-contour_heatmap_incidence_risk_ratio <- plot_contour_heatmap(
-  funding_reduction_scenarios = model_proportions_mean_incidence,
-  mean_var = "incidence_risk_ratio",
-  pct_change_var = "relative_incidence_risk_ratio_change_pct",
-  var_name = "Mean Incidence\nRisk Ratio",
-  baseline_value = 1.0)
-
-total_baseline <- p$G_ART_baseline + p$G_PrEP_baseline
-total_pct_cuts_valid <- seq(0.1, 1, by = 0.1) * total_baseline
-isobudget_data <- create_isobudget_lines(
-  total_pct_cuts_valid, p$G_ART_baseline, p$G_PrEP_baseline)
-
-iso_heatmap_incidence_pct <- add_iso_budget_lines_to_plot(
-  isobudget_data, heatmap_plots_list = contour_heatmap_incidence,
-  total_baseline = total_baseline,
-  G_ART_baseline = p$G_ART_baseline, G_PrEP_baseline = p$G_PrEP_baseline)
-
-iso_heatmap_risk_ratio_pct <- add_iso_budget_lines_to_plot(
-  isobudget_data, heatmap_plots_list = contour_heatmap_incidence_risk_ratio,
-  total_baseline = total_baseline,
-  G_ART_baseline = p$G_ART_baseline, G_PrEP_baseline = p$G_PrEP_baseline)
-
-# ---- Save heatmaps --------------------------------------------------------
-tile_incidence_files <- c("discrete_heatmap_incidence_main_year10",
-                          "discrete_heatmap_incidence_relative_year10")
-for (i in seq_along(tile_incidence_files)) {
-  ggsave(paste0(plots_folder_name, tile_incidence_files[i], ".png"),
-         plot = tile_heatmap_incidence[[i]], width = 12, height = 10, dpi = 300)
-}
-
-tile_irr_files <- c("discrete_heatmap_IRR_main_year10",
-                    "discrete_heatmap_IRR_relative_year10")
-for (i in seq_along(tile_irr_files)) {
-  ggsave(paste0(plots_folder_name, tile_irr_files[i], ".png"),
-         plot = tile_heatmap_risk_ratio[[i]], width = 12, height = 10, dpi = 300)
-}
-
-incidence_contour_files <- c("heatmap_incidence_main_year10",
-                             "heatmap_incidence_relative_year10")
-for (i in seq_along(incidence_contour_files)) {
-  ggsave(paste0(plots_folder_name, incidence_contour_files[i], ".png"),
-         plot = iso_heatmap_incidence_pct[[i]], width = 10, height = 8, dpi = 300)
-}
-
-risk_ratio_contour_files <- c("heatmap_risk_ratio_main_year10",
-                              "heatmap_risk_ratio_relative_year10")
-for (i in seq_along(risk_ratio_contour_files)) {
-  ggsave(paste0(plots_folder_name, risk_ratio_contour_files[i], ".png"),
-         plot = iso_heatmap_risk_ratio_pct[[i]], width = 10, height = 8, dpi = 300)
-}
-
-# ---- Forest plot by funding reduction (main-text Figure 1) ----------------
-# Coverage-reduction per unit funding reduction (invert paper Eqs. 1-2).
+# Coverage-reduction per unit funding reduction (invert paper Eqs. 1-2). Shared
+# by the forest plot, the ribbon panel, and the table.
 art_cov_per_funding  <- (p$P_ART_baseline  - p$gamma_ART)  / p$P_ART_baseline
 prep_cov_per_funding <- (p$P_PrEP_baseline - p$gamma_PrEP) / p$P_PrEP_baseline
 
+# ---------------------------------------------------------------------------
+# Output 1 — Forest plot by funding reduction (main-text Figure 1)
+# ---------------------------------------------------------------------------
 forest <- plot_funding_forest(
   gp_incidence_fit = gp_incidence_fit,
   art_cov_per_funding = art_cov_per_funding,
@@ -174,23 +99,25 @@ write.csv(forest_summary,
           paste0(plots_folder_name, "forest_incidence_risk_ratio_funding.csv"),
           row.names = FALSE)
 
-# ---- Combined ribbon + heatmap panel (main-text figure) -------------------
-# Two-panel figure. Panel A: increase in mean HIV incidence from baseline over
-# years 0-10 under a single direct intervention-use reduction level (40%) for
-# two scenarios (ART-only and PrEP-only), each with 50% and 95% credible
-# ribbons (identity coverage mapping, so the labelled % is the coverage
-# reduction; same common random numbers as the forest plot). Panel B: the
-# government-funding mean-incidence-risk-ratio contour heatmap (same code as
-# heatmap_risk_ratio_main_year10.png) with both axes restricted to 0-50% and
-# fixed 0.25-wide colour bands from a risk ratio of 1 up to 3.
+# ---------------------------------------------------------------------------
+# Output 2 — Combined ribbon + heatmap panel (main-text figure)
+# ---------------------------------------------------------------------------
+# Two-panel figure. Panel A: mean incidence-risk-ratio trajectory over years
+# 0-10 under three government-funding reduction scenarios that cut ART and PrEP
+# simultaneously by 10%, 20% and 40%, each with 50% and 95% credible ribbons
+# (same common random numbers as the forest plot). Each ribbon is coloured by
+# the panel-B heatmap band its terminal risk ratio falls in, so the two panels
+# share a colour language. Panel B: the government-funding mean-incidence-risk-
+# ratio contour heatmap with both axes restricted to 0-50% and fixed 0.25-wide
+# colour bands.
 ribbon_heatmap <- plot_ribbon_heatmap_panel(
   gp_incidence_fit = gp_incidence_fit,
   grid_scenarios = model_proportions_mean_incidence,
   art_cov_per_funding = art_cov_per_funding,
   prep_cov_per_funding = prep_cov_per_funding,
-  reduction_level = 0.40,
+  reduction_levels = c(0.10, 0.20, 0.40),
   heatmap_max = 50,
-  rr_breaks = seq(1, 2.5, 0.25),
+  rr_breaks = seq(1, 2.25, 0.25),
   n_samples_per_checkpoint = p$n_samples_per_checkpoint,
   common_random_numbers = USE_COMMON_RANDOM_NUMBERS,
   save_path = paste0(plots_folder_name, "incidence_ribbon_heatmap_panel"))
@@ -201,20 +128,10 @@ write.csv(as.data.frame(ribbon_heatmap$ribbon_data),
           paste0(plots_folder_name, "incidence_trajectory_ribbon.csv"),
           row.names = FALSE)
 
-# ---- Bar plots of selected policy scenarios -------------------------------
-plot_funding_bar(
-  key_scenarios = model_proportions_mean_incidence,
-  art_funding_reduction_pct  = c(0, 10, 0, 25, 0, 40, 0, 40),
-  prep_funding_reduction_pct = c(0, 0, 10, 0, 25, 0, 40, 40),
-  title = "Selected Policy Scenarios",
-  save_path = paste0(plots_folder_name, "bar_plot"),
-  y_metric = "all",
-  incidence_ci_results = incidence_ci_results,
-  relative_change_ci_results = relative_change_ci_results,
-  irr_ci_results = irr_ci_results)
-
 # ---------------------------------------------------------------------------
-# Table (main-text Table 1): two stacked blocks, shared baseline.
+# Output 3 — Scenario table (main-text Table 1)
+# -----------------------------------------------------------------------------
+# Two stacked blocks, shared baseline:
 #   A. Intervention use reduction (labelled % = coverage reduction)
 #   B. Government funding reduction (labelled % mapped to coverage via cost model)
 # Both blocks and both figure panels use the same 10/25/40% levels and common
