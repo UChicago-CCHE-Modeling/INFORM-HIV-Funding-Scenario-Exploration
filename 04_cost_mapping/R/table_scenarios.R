@@ -18,7 +18,7 @@
 #
 # Every quantity is computed from the stage-03 surrogate with common random
 # numbers (compute_scenario_draws_crn), so the mean incidence, absolute increase
-# (cases per 100 p.y.), and incidence risk ratio all reference the SAME baseline
+# (cases per 100 p.y.), and incidence rate ratio all reference the SAME baseline
 # predictive draws and are mutually consistent.
 # =============================================================================
 
@@ -152,7 +152,7 @@ create_funding_scenario_table <- function(gp_incidence_fit,
         .format_ci_column(s_inc$mean, s_inc$lo, s_inc$hi, align = align_ci),
       `Absolute Increase per 100 p.y. [95\\% CrI]` =
         .format_ci_column(s_abs$mean, s_abs$lo, s_abs$hi, align = align_ci),
-      `Incidence Risk Ratio [95\\% CrI]` =
+      `Incidence Rate Ratio [95\\% CrI]` =
         .format_ci_column(s_irr$mean, s_irr$lo, s_irr$hi, align = align_ci),
       check.names = FALSE, stringsAsFactors = FALSE)
   }
@@ -177,7 +177,7 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     "\\shortstack[r]{PrEP Use\\\\Reduction (\\%)}",
     "\\shortstack[r]{Mean HIV Incidence\\\\per 100 p.y.\\\\{[}95\\% CrI]}",
     "\\shortstack[r]{Absolute Increase\\\\per 100 p.y.\\\\{[}95\\% CrI]}",
-    "\\shortstack[r]{Incidence Risk Ratio\\\\{[}95\\% CrI]}")
+    "\\shortstack[r]{Incidence Rate Ratio\\\\{[}95\\% CrI]}")
 
   latex_table <- kable(latex_df,
                        format = "latex",
@@ -206,7 +206,7 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     "\\emph{Abbreviations:} ART, antiretroviral therapy; PrEP, ",
     "pre-exposure prophylaxis; HIV, human immunodeficiency virus; ",
     "p.y., person-years; CrI, credible interval; ",
-    "IRR, incidence risk ratio.\\\\[0.3em]\n",
+    "IRR, incidence rate ratio.\\\\[0.3em]\n",
     "All quantities are HIV incidence outcomes at the 10-year horizon, ",
     "reported as the mean with a 95\\% CrI pooled across the 100 calibrated ",
     "model checkpoints. \\emph{ART Use Reduction} and \\emph{PrEP Use Reduction} ",
@@ -219,7 +219,7 @@ create_funding_scenario_table <- function(gp_incidence_fit,
     "\\emph{Mean HIV Incidence} is new HIV infections per 100 person-years. ",
     "\\emph{Absolute Increase} is the difference in incidence from the baseline ",
     "(no-cut) scenario, in cases per 100 person-years. ",
-    "\\emph{Incidence Risk Ratio} is the ratio of scenario incidence to baseline ",
+    "\\emph{Incidence Rate Ratio} is the ratio of scenario incidence to baseline ",
     "incidence; a value of 1 indicates no change. Both blocks share the single ",
     "baseline row.\n",
     "\\end{minipage}}\n")

@@ -1,7 +1,7 @@
 # =============================================================================
 # Incidence-trajectory ribbon plot (main-text figure)
 # -----------------------------------------------------------------------------
-# Shows how the mean HIV incidence risk ratio (scenario / no-reduction baseline)
+# Shows how the mean HIV incidence rate ratio (scenario / no-reduction baseline)
 # evolves over the projection horizon (years 0-10 since the intervention) under
 # three reduction scenarios that cut ART and PrEP simultaneously by 10%, 20% and
 # 40% (default).
@@ -19,8 +19,8 @@
 # reduction trick used for the forest plot.
 #
 # We show only the mean and the ribbons (no individual sample lines). Each
-# ribbon is coloured by the heatmap band its terminal-year risk ratio falls in
-# (see .band_color_fn), so this panel and the risk-ratio heatmap share a colour
+# ribbon is coloured by the heatmap band its terminal-year rate ratio falls in
+# (see .band_color_fn), so this panel and the rate-ratio heatmap share a colour
 # language. Styling matches the forest plot: randplot::theme_rand, PT Sans with
 # a graceful fallback, no plot title, white background, vector PDF output.
 # =============================================================================
@@ -37,9 +37,9 @@ library(patchwork)
 # ---- Heatmap band -> colour map ----------------------------------------------
 # The heatmap fills its contour bands (breaks e.g. seq(1, 2.5, 0.25)) with the
 # discrete viridis "plasma" palette -- exactly what scale_fill_viridis_d() /
-# geom_contour_filled() assign. Return a function that maps any risk-ratio value
+# geom_contour_filled() assign. Return a function that maps any rate-ratio value
 # to the colour of the band [breaks[i], breaks[i+1]) it falls in, so panel A's
-# ribbons can be coloured to match the band their terminal risk ratio sits in on
+# ribbons can be coloured to match the band their terminal rate ratio sits in on
 # panel B. Pulling the colours from viridisLite (rather than hard-coding) keeps
 # the two panels in lockstep if the breaks change. Values at/below the first
 # break take the first band's colour; values above the last take the last.
@@ -91,7 +91,7 @@ library(patchwork)
   n_ticks <- nrow(draws$irr[[1]])
   stopifnot(length(years) == n_ticks)
 
-  # Summarise the incidence risk ratio (scenario / baseline) at each tick.
+  # Summarise the incidence rate ratio (scenario / baseline) at each tick.
   rows <- lapply(seq_len(nrow(scenarios)), function(k) {
     d <- draws$irr[[k]]  # n_ticks x n_draws
     data.table(
@@ -110,7 +110,7 @@ library(patchwork)
 
 #' Incidence-trajectory ribbon plot
 #'
-#' Plots the mean HIV incidence risk ratio (scenario / no-reduction baseline)
+#' Plots the mean HIV incidence rate ratio (scenario / no-reduction baseline)
 #' over the projection horizon for reduction scenarios that cut ART and PrEP
 #' simultaneously by each supplied level. Each scenario is drawn as a coloured
 #' mean line with a darker 50% credible ribbon and a lighter 95% credible
@@ -132,9 +132,9 @@ library(patchwork)
 #'   inner (50%) and outer (95%) credible ribbons.
 #' @param common_random_numbers If TRUE (default), baseline and scenario draws
 #'   share predictive randomness within each checkpoint (see the CRN module).
-#' @param band_color_fn Optional function mapping a numeric risk ratio to a fill
+#' @param band_color_fn Optional function mapping a numeric rate ratio to a fill
 #'   colour, used to colour each ribbon by the heatmap band its terminal-year
-#'   mean risk ratio falls in (so panels A and B share a colour language). When
+#'   mean rate ratio falls in (so panels A and B share a colour language). When
 #'   NULL, the RAND categorical palette is used instead.
 #' @param font Preferred font family; falls back to "sans" if unavailable.
 #' @param save_path Path without extension; saves "<save_path>.pdf" (vector,
@@ -176,7 +176,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
   chosen_font <- resolve_font(font)
 
   # Colour each scenario by the heatmap band its terminal-year (last tick) mean
-  # risk ratio falls into, so a ribbon's colour matches the contour band its
+  # rate ratio falls into, so a ribbon's colour matches the contour band its
   # endpoint sits in on panel B. band_color_fn is derived from the same breaks +
   # plasma palette as the heatmap (see .band_color_fn()); if absent, fall back
   # to a RAND categorical palette so the function still works standalone.
@@ -192,7 +192,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
   }
 
   p <- ggplot(ribbon_dt, aes(x = year, group = scenario)) +
-    # Null reference: no change from baseline (risk ratio = 1).
+    # Null reference: no change from baseline (rate ratio = 1).
     geom_hline(yintercept = 1, linetype = "dashed", color = "grey40",
                linewidth = 0.5) +
     # Lighter 95% ribbon, then darker 50% ribbon on top.
@@ -204,7 +204,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
     scale_x_continuous(breaks = scales::breaks_width(2)) +
     scale_y_continuous() +
     labs(x = "Year",
-         y = "Mean incidence risk ratio") +
+         y = "Mean incidence rate ratio") +
     theme_rand(font = chosen_font) +
     theme(legend.position = "bottom",
           # Small margin so the long rotated y-axis title is not clipped.
@@ -229,14 +229,14 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
   list(plot = p, data = ribbon_dt)
 }
 
-#' Combined two-panel figure: ribbon trajectory (A) + risk-ratio heatmap (B)
+#' Combined two-panel figure: ribbon trajectory (A) + rate-ratio heatmap (B)
 #'
 #' Assembles a single main-text figure with the incidence-trajectory ribbon plot
-#' as panel A (left) and the government-funding mean-incidence-risk-ratio contour
+#' as panel A (left) and the government-funding mean-incidence-rate-ratio contour
 #' heatmap as panel B (right). Panel B reuses plot_contour_heatmap() (the same
 #' code behind heatmap_risk_ratio_main_year10.png) but with both funding-
 #' reduction axes restricted to 0-50% and fixed 0.25-wide colour bands from a
-#' risk ratio of 1 up to 3.
+#' rate ratio of 1 up to 3.
 #'
 #' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
 #' @param grid_scenarios The deduplicated funding->coverage->incidence surface
@@ -249,7 +249,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
 #'   (default c(0.10, 0.20, 0.40)); each cuts ART and PrEP simultaneously by
 #'   that fraction, mapped to coverage via the per-funding factors above.
 #' @param heatmap_max Upper bound (percent) for both heatmap axes (default 50).
-#' @param rr_breaks Contour/fill breaks for the risk-ratio bands (default
+#' @param rr_breaks Contour/fill breaks for the rate-ratio bands (default
 #'   seq(1, 2.25, 0.25)). The 0-50% window's IRR tops out just above 2, so this
 #'   gives exactly five fully-populated bands. Every band must contain data:
 #'   panel B renders with scale_fill_viridis_d(drop = TRUE), so an empty top band
@@ -305,7 +305,7 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
   # Government-funding framing (to pair with panel B): the labelled reduction is
   # a funding reduction mapped to coverage via the cost model, so pass the
   # per-unit coverage factors rather than the identity default. Colour each
-  # ribbon by the heatmap band its terminal risk ratio falls in (same rr_breaks
+  # ribbon by the heatmap band its terminal rate ratio falls in (same rr_breaks
   # + plasma palette as panel B) so the two panels share a colour language.
   ribbon <- plot_incidence_ribbon(
     gp_incidence_fit = gp_incidence_fit,
@@ -319,7 +319,7 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     save_path = NULL)
   p_a <- ribbon$plot + shared_theme
 
-  # ---- Panel B: risk-ratio contour heatmap, 0-50% axes, 0.5-wide bands ------
+  # ---- Panel B: rate-ratio contour heatmap, 0-50% axes, 0.5-wide bands ------
   # Restrict to the plotted window (small epsilon so a floating-point boundary
   # row at exactly heatmap_max is not dropped) and let the data hull set the
   # axis extent -- passing hard scale limits would clip that boundary row and
@@ -333,13 +333,13 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     funding_reduction_scenarios = grid_window,
     mean_var = "incidence_risk_ratio",
     pct_change_var = "relative_incidence_risk_ratio_change_pct",
-    var_name = "Mean incidence risk ratio at year 10",
+    var_name = "Mean incidence rate ratio at year 10",
     baseline_value = 1.0,
     breaks = rr_breaks)
   # No coord_fixed: let panel B stretch to fill its column so both panels
   # occupy the same horizontal space. Apply theme_rand first (RAND base), then
   # the shared override so panel B matches panel A's font/size/weight exactly.
-  # Sentence-case axis titles to match panel A. Lay the discrete risk-ratio
+  # Sentence-case axis titles to match panel A. Lay the discrete rate-ratio
   # bands out in a single horizontal row along the bottom (one-line title above)
   # so the legend consumes width rather than vertical plot height; centre the
   # legend so the long title is not clipped at the figure edge.
@@ -351,14 +351,14 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     # drop = FALSE (to show every band elsewhere), which here leaves a phantom
     # trailing key with no swatch that overflows the row.
     scale_fill_viridis_d(option = "plasma", drop = TRUE,
-                         name = "Mean incidence risk ratio at year 10") +
+                         name = "Mean incidence rate ratio at year 10") +
     guides(fill = guide_legend(nrow = 1, byrow = TRUE,
                                title.position = "top", title.hjust = 0.5)) +
     theme_rand(font = chosen_font) +
     theme(panel.grid = element_blank(),
           legend.justification = "center") +
     shared_theme +
-    # Tighten the swatches, text and inter-key spacing so all six risk-ratio
+    # Tighten the swatches, text and inter-key spacing so all six rate-ratio
     # bands fit in a single centred row under panel B (its column is only half
     # the figure width, so the default key size overflows the right edge).
     theme(legend.text     = element_text(family = chosen_font, size = base_size - 2),

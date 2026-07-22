@@ -1,5 +1,5 @@
 # =============================================================================
-# Two-panel forest plot of incidence risk ratios (main-text Figure 1)
+# Two-panel forest plot of incidence rate ratios (main-text Figure 1)
 # -----------------------------------------------------------------------------
 # Panel A: scenarios defined directly in INTERVENTION USE (coverage) reduction
 #          terms. The labelled percentage IS the coverage reduction fed to the
@@ -9,7 +9,7 @@
 #          funding-to-coverage relationship (paper Eqs. 1-2) before the
 #          surrogate query.
 #
-# Putting the two side by side on a shared incidence-risk-ratio axis makes the
+# Putting the two side by side on a shared incidence-rate-ratio axis makes the
 # cost model's dampening explicit: a given percentage funding reduction (Panel
 # B) produces a SMALLER coverage reduction -- and hence a smaller incidence
 # increase -- than the same percentage use reduction (Panel A), because a
@@ -66,7 +66,7 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
 # Build the scenario grid (PrEP-only, ART-only, both) at each reduction level,
 # map the labelled reduction to a coverage reduction via the supplied per-unit
 # factors (1 for the direct-use panel; the cost-model factors for the funding
-# panel), query the surrogate, and summarise the incidence risk ratio with
+# panel), query the surrogate, and summarise the incidence rate ratio with
 # common random numbers by default. The IRR is averaged over the trajectory
 # horizon per draw (tick = NULL), the forest-plot convention.
 .forest_panel_data <- function(gp_incidence_fit,
@@ -78,9 +78,9 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
                                ci_probs,
                                panel_label) {
   scenarios <- rbind(
-    data.table(scenario = "PrEP reduction", art_red = 0,                prep_red = reduction_levels),
-    data.table(scenario = "ART reduction",  art_red = reduction_levels, prep_red = 0),
-    data.table(scenario = "PrEP and ART",   art_red = reduction_levels, prep_red = reduction_levels)
+    data.table(scenario = "Reduce PrEP only",         art_red = 0,                prep_red = reduction_levels),
+    data.table(scenario = "Reduce ART only",          art_red = reduction_levels, prep_red = 0),
+    data.table(scenario = "Reduce both PrEP and ART", art_red = reduction_levels, prep_red = reduction_levels)
   )
   scenarios[, reduction := pmax(art_red, prep_red)]  # level being varied
 
@@ -102,9 +102,9 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
                    mean  = irr_summary$mean,
                    lower = irr_summary$ci_lower,
                    upper = irr_summary$ci_upper)]
-  forest_dt[, scenario := factor(scenario, levels = c("PrEP reduction",
-                                                      "ART reduction",
-                                                      "PrEP and ART"))]
+  forest_dt[, scenario := factor(scenario, levels = c("Reduce PrEP only",
+                                                      "Reduce ART only",
+                                                      "Reduce both PrEP and ART"))]
   # crosses_one is TRUE when the lower bound is at or below the null (RR = 1).
   forest_dt[, crosses_one := lower <= 1]
   forest_dt[]
@@ -121,13 +121,13 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
                   width = 0.4, linewidth = 0.8, position = pd) +
     geom_point(size = 3, position = pd) +
     # RAND categorical palette: blue = ART, green = PrEP, purple = both
-    scale_color_manual(values = c("PrEP reduction" = "#45aF84",
-                                  "ART reduction"  = "#597cbe",
-                                  "PrEP and ART"   = "#af61a7"),
+    scale_color_manual(values = c("Reduce PrEP only"         = "#45aF84",
+                                  "Reduce ART only"          = "#597cbe",
+                                  "Reduce both PrEP and ART" = "#af61a7"),
                        name = NULL) +
     scale_x_log10(breaks = x_breaks, limits = x_limits,
                   expand = expansion(mult = 0)) +
-    labs(title = title, x = "Mean incidence risk ratio", y = ylab) +
+    labs(title = title, x = "Mean incidence rate ratio", y = ylab) +
     theme_rand(font = chosen_font) +
     theme(legend.position = if (show_legend) "top" else "none",
           plot.title = element_text(face = "bold", hjust = 0),
@@ -140,13 +140,13 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
   p
 }
 
-#' Two-panel forest plot of incidence risk ratios (Figure 1)
+#' Two-panel forest plot of incidence rate ratios (Figure 1)
 #'
 #' Panel A shows scenarios defined as direct intervention-use (coverage)
 #' reductions; Panel B shows the same labelled percentages as government funding
 #' reductions, mapped to coverage through the cost model. Both share the
-#' incidence-risk-ratio axis so the funding-to-coverage dampening is visible.
-#' Risk ratios are computed by compute_irr_draws_crn() (see
+#' incidence-rate-ratio axis so the funding-to-coverage dampening is visible.
+#' Rate ratios are computed by compute_irr_draws_crn() (see
 #' R/irr_common_random_numbers.R) with common random numbers by default.
 #'
 #' @param gp_incidence_fit Composite incidence surrogate (from surrogate.Rdata).
@@ -157,7 +157,7 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
 #' @param reduction_levels Reduction fractions to plot on the y-axis of both
 #'   panels (defaults to 10/25/40%).
 #' @param n_samples_per_checkpoint Surrogate draws per checkpoint.
-#' @param common_random_numbers If TRUE, the incidence risk ratio is computed
+#' @param common_random_numbers If TRUE, the incidence rate ratio is computed
 #'   with common random numbers (baseline and scenario share predictive draws
 #'   within each checkpoint via compute_irr_draws_crn(); shared noise cancels so
 #'   the (0,0) self-ratio is exactly 1). If FALSE, baseline and scenario draws
@@ -170,7 +170,7 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
 #'
 #' @return A list with the combined ggplot object ($plot) and the underlying
 #'   forest data table ($data, one row per panel x scenario x reduction level
-#'   with mean/lower/upper risk ratios and a crosses_one flag). Returned
+#'   with mean/lower/upper rate ratios and a crosses_one flag). Returned
 #'   invisibly when saved.
 plot_funding_forest <- function(gp_incidence_fit,
                                 art_cov_per_funding,
