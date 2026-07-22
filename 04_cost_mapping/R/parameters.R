@@ -25,27 +25,7 @@ cost_mapping_params <- function(yml = COST_PARAMS_YML) {
   add <- function(x) Reduce(`+`, x)
 
   # ---- Raw scalars --------------------------------------------------------
-  inflation_rate_19to25 <- unlist(raw$inflation$rate_19to25_pct)
-
-  # Unit costs (2018 USD): components carried for documentation; reconstruct the
-  # summed/product values with the original arithmetic.
-  annual_cumulative_clinical_lab_cost_2018 <-
-    add(raw$unit_costs_2018$annual_cumulative_clinical_lab_cost$components)
-  first_year_physician_visit_total_cost_2018 <-
-    raw$unit_costs_2018$first_year_physician_visit_total_cost
-  quarterly_physician_visit_cost_2018 <-
-    raw$unit_costs_2018$quarterly_physician_visit_cost$per_visit *
-    raw$unit_costs_2018$quarterly_physician_visit_cost$visits_per_year
-  weighted_average_prep_meds_30days_2018 <-
-    raw$unit_costs_2018$weighted_average_prep_meds_30days
-
-  annual_hiv_healthcare_costs_2025 <-
-    add(raw$healthcare_costs_2025$annual_hiv_healthcare_costs$components)
-  annual_nonhiv_healthcare_costs_2025 <-
-    raw$healthcare_costs_2025$annual_nonhiv_healthcare_costs
-  annual_art_costs_2025 <- raw$healthcare_costs_2025$annual_art_costs
-
-  total_MSM_2021              <- raw$population$total_MSM_2021
+   total_MSM_2021              <- raw$population$total_MSM_2021
   total_MSM_with_hiv_2022     <- raw$population$total_MSM_with_hiv_2022
   total_num_hiv_infected_2022 <- raw$population$total_num_hiv_infected_2022
   total_num_prep_indication_MSM_2018 <- raw$population$total_num_prep_indication_MSM_2018
@@ -75,8 +55,6 @@ cost_mapping_params <- function(yml = COST_PARAMS_YML) {
 
   # ---- Derived: population subgroups --------------------------------------
   N_HIV_pos       <- total_MSM_with_hiv_2022
-  N_MSM_total     <- total_MSM_2021
-  N_HIV_neg       <- N_MSM_total - N_HIV_pos
   N_PrEP_eligible <- total_num_prep_indication_MSM_2018
 
   # ---- Derived: MSM shares and MSM-attributed funding ---------------------
@@ -94,15 +72,6 @@ cost_mapping_params <- function(yml = COST_PARAMS_YML) {
   P_PrEP_baseline <- G_PrEP_baseline / (beta_PrEP * C_PrEP * N_PrEP_eligible) + gamma_PrEP
 
   list(
-    inflation_rate_19to25 = inflation_rate_19to25,
-    annual_cumulative_clinical_lab_cost_2018 = annual_cumulative_clinical_lab_cost_2018,
-    first_year_physician_visit_total_cost_2018 = first_year_physician_visit_total_cost_2018,
-    quarterly_physician_visit_cost_2018 = quarterly_physician_visit_cost_2018,
-    weighted_average_prep_meds_30days_2018 = weighted_average_prep_meds_30days_2018,
-    annual_hiv_healthcare_costs_2025 = annual_hiv_healthcare_costs_2025,
-    annual_nonhiv_healthcare_costs_2025 = annual_nonhiv_healthcare_costs_2025,
-    annual_art_costs_2025 = annual_art_costs_2025,
-    total_MSM_2021 = total_MSM_2021,
     total_MSM_with_hiv_2022 = total_MSM_with_hiv_2022,
     total_num_hiv_infected_2022 = total_num_hiv_infected_2022,
     total_num_prep_indication_MSM_2018 = total_num_prep_indication_MSM_2018,
@@ -122,8 +91,6 @@ cost_mapping_params <- function(yml = COST_PARAMS_YML) {
     horizon_tick = horizon_tick,
     ci_probs = ci_probs,
     N_HIV_pos = N_HIV_pos,
-    N_MSM_total = N_MSM_total,
-    N_HIV_neg = N_HIV_neg,
     N_PrEP_eligible = N_PrEP_eligible,
     prop_MSM_hiv_in_pop = prop_MSM_hiv_in_pop,
     prop_MSM_prep_indication_in_pop = prop_MSM_prep_indication_in_pop,
@@ -132,9 +99,4 @@ cost_mapping_params <- function(yml = COST_PARAMS_YML) {
     P_ART_baseline = P_ART_baseline,
     P_PrEP_baseline = P_PrEP_baseline
   )
-}
-
-# Inflation helper: compound a series of annual rates onto an earlier value.
-calculate_cost_2025 <- function(inflation_rates, earlier_val) {
-  earlier_val * prod(1 + inflation_rates / 100)
 }

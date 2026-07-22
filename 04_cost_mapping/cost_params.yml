@@ -18,68 +18,8 @@
 # breakdown is preserved as a list plus a documented `total`.
 # =============================================================================
 
-# ---- Inflation --------------------------------------------------------------
-inflation:
-  # Annual US inflation rates (%), one per year 2019->2025 (7 values), used by
-  # calculate_cost_2025() to compound 2018 unit costs forward to 2025 USD.
-  # Compounded factor prod(1 + r/100) = 1.2737.
-  # DISCREPANCY: the paper (supplementary_material.tex line 828) cites a BLS
-  # CPI-U ratio for 2019--2025 of x1.259, NOT 1.2737. The individual yearly
-  # rates below are NOT listed in the paper; treat as UNVERIFIED. The compounded
-  # 1.2737 differs from the paper's stated 1.259 by ~1.2%. Flagged, not fixed.
-  rate_19to25_pct: [2.2, 2.3, 1.4, 6.0, 5.6, 3.9, 3.3]
-
-# ---- Unit costs (2018 USD components) ---------------------------------------
-# UNVERIFIED - none of these 2018 line-item unit costs are reported anywhere in
-# paper.tex or supplementary_material.tex. The paper presents only the finalized
-# 2025 per-person figures (C_ART = $50,000, C_PrEP = $21,000). These 2018
-# components appear to be intermediate build-up calculations not documented in
-# the paper. Retained verbatim from R/parameters.R; sources unknown.
-unit_costs_2018:
-  # Cumulative annual clinical + lab cost, 2018 USD. Sum of 7 line items.
-  # total = 1458.25. UNVERIFIED - line items not found in paper.
-  annual_cumulative_clinical_lab_cost:
-    components: [120.40, 140.36, 16.92, 33.13, 28.54, 66.20, 1052.70]
-    total: 1458.25
-  # First-year physician-visit total cost, 2018 USD. UNVERIFIED - not in paper.
-  first_year_physician_visit_total_cost: 671.01
-  # Quarterly physician-visit cost, 2018 USD, as 92.47 * 4 = 369.88.
-  # UNVERIFIED - not in paper.
-  quarterly_physician_visit_cost:
-    per_visit: 92.47
-    visits_per_year: 4
-    total: 369.88
-  # Weighted-average 30-day PrEP medication cost, 2018 USD. UNVERIFIED - the
-  # paper discusses PrEP medication WAC/generic ranges (supp lines 838-843) but
-  # does not report this 349.70 figure.
-  weighted_average_prep_meds_30days: 349.70
-
-# ---- Healthcare / ART costs (2025 USD) --------------------------------------
-# UNVERIFIED - these specific 2025 healthcare/ART cost components are not
-# reported in the paper. NOTE: the paper's finalized C_ART = $50,000 is
-# described as the MIDPOINT of a payer-stratified range from Bingham et al. 2021
-# ($45,600 government-payer lower bound to ~$52,000 WAC upper bound; supp lines
-# 822-832). It is NOT built up from the line items below. These values feed a
-# separate cost accounting in the pipeline; sources not documented in paper.
-healthcare_costs_2025:
-  # Annual HIV-related healthcare cost, 2025 USD. Sum of 6 line items.
-  # total = 70162. UNVERIFIED - line items not found in paper.
-  annual_hiv_healthcare_costs:
-    components: [43, 5903, 9912, 8833, 31257, 14214]
-    total: 70162
-  # Annual non-HIV healthcare cost, 2025 USD. UNVERIFIED - not in paper.
-  annual_nonhiv_healthcare_costs: 5804
-  # Annual ART drug cost, 2025 USD. UNVERIFIED - not in paper (distinct from the
-  # finalized C_ART = 50000 per-person figure used in the coverage model).
-  annual_art_costs: 22288
-
 # ---- Population sizes --------------------------------------------------------
 population:
-  # Total MSM aged 13-64 (2017-2021 estimate). UNVERIFIED - not reported in the
-  # paper. The paper's N_HIV- is the PrEP-INDICATED MSM count (851,240), not
-  # total MSM. In R this value only feeds the derived N_HIV_neg (= total_MSM -
-  # HIV+ MSM), which is NOT the quantity used in the coverage equations.
-  total_MSM_2021: 4230000
   # HIV-positive MSM in the U.S. (2022). VERIFIED: supplementary_material.tex
   # Table "Population parameters" (tab:supp-pop-params, line 862) = 638,900,
   # cited to HIV.gov (Fed_HIV_stats). Also in paper.tex line 284 (N_HIV+).
@@ -158,8 +98,8 @@ coverage_model:
 grid:
   # Grid resolution per axis. UNVERIFIED - specific value 101 not in paper. The
   # paper (paper.tex line 322) describes a 30-point Latin hypercube design over
-  # the coverage-reduction space, and 100 calibrated checkpoints; a dense
-  # 101-per-axis grid is an implementation detail not documented in the paper.
+  # the coverage-reduction space, and 100 calibrated checkpoints.
+  # The 101-per-axis grid is for the cost transformed coverage-reduction space, mapping each (ART x PrEP) scenario in 1%-steps.
   ngrid: 101
   # Surrogate draws per calibrated checkpoint. UNVERIFIED - value 50 not stated
   # in paper. Paper references 100 checkpoints (supp line 727, paper line 322)
