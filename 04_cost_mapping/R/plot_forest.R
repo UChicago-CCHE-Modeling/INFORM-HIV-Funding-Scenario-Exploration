@@ -35,6 +35,24 @@ library(hetGP)     # so predict() dispatches on the stored hetGP models
 library(randplot)
 library(patchwork)
 
+# Shared type sizing for every cost-mapping figure.
+#
+# Both cost-mapping figures are included in the paper at width=1\linewidth, so
+# LaTeX scales each saved figure to fill the text width. A figure saved on a
+# WIDER canvas is therefore shrunk MORE, and its text ends up physically smaller
+# on the page: the rendered font size is (source pt) * (\linewidth / canvas
+# width). For a fixed source pt to render at the SAME size across figures, they
+# must share the same canvas WIDTH -- so every cost-mapping figure is saved at
+# COST_FIG_WIDTH inches (heights may still differ). COST_FIG_BASE_SIZE is the
+# shared source font size, ~10% larger than the previous 12 pt so the figures
+# also read bigger in the paper. plot_ribbon.R (sourced after this file) uses
+# both constants for the ribbon+heatmap panel.
+COST_FIG_BASE_SIZE <- 13.2   # shared source font size (pt)
+COST_FIG_WIDTH     <- 10.0   # shared canvas width (in) for all cost-mapping figures
+COST_FIG_HEIGHT    <- 5.5    # shared canvas height (in); every cost-mapping figure
+                             # is saved at exactly COST_FIG_WIDTH x COST_FIG_HEIGHT
+                             # so they are the same size on the page
+
 # ---- Font selection with graceful fallback ----------------------------------
 # Register `preferred` with showtext (so it embeds as vector outlines in the PDF
 # without relying on a working cairo/X11 stack) and return its family name. If
@@ -129,10 +147,15 @@ resolve_font <- function(preferred = "PT Sans", fallback = "sans") {
                   expand = expansion(mult = 0)) +
     labs(title = title, x = "Mean incidence rate ratio", y = ylab) +
     theme_rand(font = chosen_font) +
-    theme(legend.position = if (show_legend) "top" else "none",
-          plot.title = element_text(face = "bold", hjust = 0),
-          axis.title.x = element_text(face = "bold"),
-          axis.title.y = element_text(face = "bold"),
+    # Pin every text element to COST_FIG_BASE_SIZE (rather than theme_rand's
+    # smaller defaults) so this figure's fonts match the ribbon+heatmap panel.
+    theme(text         = element_text(family = chosen_font, size = COST_FIG_BASE_SIZE),
+          axis.text    = element_text(size = COST_FIG_BASE_SIZE),
+          legend.text  = element_text(size = COST_FIG_BASE_SIZE - 1),
+          plot.title   = element_text(face = "bold", hjust = 0, size = COST_FIG_BASE_SIZE + 1),
+          legend.position = if (show_legend) "top" else "none",
+          axis.title.x = element_text(face = "bold", size = COST_FIG_BASE_SIZE),
+          axis.title.y = element_text(face = "bold", size = COST_FIG_BASE_SIZE),
           # theme_rand blanks the plot background (transparent); force white so
           # the raster PNG preview is not transparent.
           plot.background = element_rect(fill = "white", color = NA),
@@ -181,8 +204,12 @@ plot_funding_forest <- function(gp_incidence_fit,
                                 common_random_numbers = TRUE,
                                 font = "PT Sans",
                                 save_path = NULL,
-                                width = 10.0,
-                                height = 4.8,
+                                # Shared canvas size across cost-mapping figures
+                                # so a fixed source font renders at the same size
+                                # and both figures are the same size on the page
+                                # (see COST_FIG_WIDTH/HEIGHT in plot_forest.R).
+                                width = COST_FIG_WIDTH,
+                                height = COST_FIG_HEIGHT,
                                 dpi = 300) {
 
   set.seed(0)  # surrogate prediction draws are stochastic

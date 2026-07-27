@@ -30,12 +30,26 @@ plot_contour_heatmap <- function(funding_reduction_scenarios, mean_var, pct_chan
       z = !!sym(mean_var)
     )
   ) +
-  geom_contour_filled(breaks = breaks) +
+  # Map fill to the band midpoint (a number) rather than the default ordered
+  # factor, so a *binned* continuous scale (scale_fill_viridis_b) applies and the
+  # legend can be drawn as a stepped colourbar with the numeric breaks labelled
+  # beneath it. The binned palette assigns the identical plasma colours as the
+  # discrete scale, so panel A's ribbon colour language (which pulls the same
+  # viridis(n) plasma colours via .band_color_fn) stays in lockstep.
+  geom_contour_filled(aes(fill = after_stat(level_mid)), breaks = breaks) +
   geom_contour(color = "white", alpha = 0.3, breaks = breaks) +
-    scale_fill_viridis_d(
+    scale_fill_viridis_b(
       option = "plasma",
-      drop = FALSE,
-      name = if (is_risk_ratio) var_name else paste0(var_name, "\n(per 100 PY)")
+      breaks = breaks,
+      limits = range(breaks),
+      show.limits = TRUE,
+      name = if (is_risk_ratio) var_name else paste0(var_name, "\n(per 100 PY)"),
+      guide = guide_colorsteps(
+        direction = "horizontal",
+        title.position = "top",
+        title.hjust = 0.5,
+        show.limits = TRUE
+      )
     ) +
     scale_x_continuous(
       labels = function(x) paste0(x, "%"),

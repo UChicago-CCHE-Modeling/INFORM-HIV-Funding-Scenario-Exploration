@@ -70,9 +70,10 @@ library(patchwork)
                          inner_probs,
                          outer_probs) {
   # One scenario per reduction level, each cutting ART and PrEP simultaneously
-  # by that level (e.g. "10% reduction" = a 10% cut to both). Labels ordered
-  # ascending so the legend and the palette line up.
-  labs <- paste0(round(reduction_levels * 100), "% reduction")
+  # by that level (e.g. "10%" = a 10% cut to both). The legend title carries the
+  # "reduction in govt. funding" framing, so the labels are just the percentages.
+  # Labels ordered ascending so the legend and the palette line up.
+  labs <- paste0(round(reduction_levels * 100), "%")
   scenarios <- data.table(scenario  = labs,
                           art_red    = reduction_levels,
                           prep_red   = reduction_levels)
@@ -154,6 +155,7 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
                                   outer_probs = c(0.025, 0.975),
                                   common_random_numbers = TRUE,
                                   band_color_fn = NULL,
+                                  legend_title = NULL,
                                   font = "PT Sans",
                                   save_path = NULL,
                                   width = 8.0,
@@ -199,8 +201,12 @@ plot_incidence_ribbon <- function(gp_incidence_fit,
     geom_ribbon(aes(ymin = lo95, ymax = hi95, fill = scenario), alpha = 0.15) +
     geom_ribbon(aes(ymin = lo50, ymax = hi50, fill = scenario), alpha = 0.30) +
     geom_line(aes(y = mean, color = scenario), linewidth = 1.0) +
-    scale_color_manual(values = pal, name = NULL) +
-    scale_fill_manual(values = pal, name = NULL) +
+    scale_color_manual(values = pal, name = legend_title) +
+    scale_fill_manual(values = pal, name = legend_title) +
+    # Centre the legend title above the key swatches so the "reduction in govt.
+    # funding" framing reads as a heading over the 10%/20%/40% labels.
+    guides(color = guide_legend(title.position = "top", title.hjust = 0.5),
+           fill  = guide_legend(title.position = "top", title.hjust = 0.5)) +
     scale_x_continuous(breaks = scales::breaks_width(2)) +
     scale_y_continuous() +
     labs(x = "Year",
@@ -277,8 +283,13 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
                                       common_random_numbers = TRUE,
                                       font = "PT Sans",
                                       save_path = NULL,
-                                      width = 14.0,
-                                      height = 5.5,
+                                      # Same canvas size as the forest plot
+                                      # (COST_FIG_WIDTH x COST_FIG_HEIGHT) so a
+                                      # fixed source font renders at the same
+                                      # physical size and both cost-mapping
+                                      # figures are the same size on the page.
+                                      width = COST_FIG_WIDTH,
+                                      height = COST_FIG_HEIGHT,
                                       dpi = 300) {
 
   chosen_font <- resolve_font(font)
@@ -288,7 +299,9 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
   # its own panel B keeps plot_contour_heatmap()'s larger (size 14, bold) axis
   # text -- this override pins both panels to the same non-bold sizes and trims
   # theme_rand's large bottom legend.box.margin (b = 24) that padded the figure.
-  base_size <- 12
+  # COST_FIG_BASE_SIZE (defined in plot_forest.R) is the shared cost-mapping-
+  # figure type size, so this panel and the forest plot use matching fonts.
+  base_size <- COST_FIG_BASE_SIZE
   shared_theme <- theme(
     text          = element_text(family = chosen_font, size = base_size),
     axis.title    = element_text(family = chosen_font, size = base_size, face = "plain"),
@@ -297,7 +310,13 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     legend.title  = element_text(family = chosen_font, size = base_size, face = "plain"),
     legend.position   = "bottom",
     legend.box.margin = margin(t = 4, r = 0, b = 0, l = 0),
-    plot.margin       = margin(t = 8, r = 8, b = 4, l = 8),
+    # Trim the wasted horizontal slack: theme_rand adds a 16 pt L/R plot margin
+    # and pushes the axis titles 16 pt off the panel, which narrows both panels
+    # and leaves gaps at the figure edges. Pull those in so the panels use the
+    # width and there is room for the axis text.
+    axis.title.x      = element_text(margin = margin(t = 6, b = 2)),
+    axis.title.y      = element_text(margin = margin(r = 6)),
+    plot.margin       = margin(t = 8, r = 4, b = 4, l = 4),
     plot.background   = element_rect(fill = "white", color = NA),
     panel.background  = element_rect(fill = "white", color = NA))
 
@@ -315,6 +334,7 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
     n_samples_per_checkpoint = n_samples_per_checkpoint,
     common_random_numbers = common_random_numbers,
     band_color_fn = .band_color_fn(rr_breaks),
+    legend_title = "Reduction in govt. funding for PrEP and ART",
     font = font,
     save_path = NULL)
   p_a <- ribbon$plot + shared_theme
@@ -339,38 +359,35 @@ plot_ribbon_heatmap_panel <- function(gp_incidence_fit,
   # No coord_fixed: let panel B stretch to fill its column so both panels
   # occupy the same horizontal space. Apply theme_rand first (RAND base), then
   # the shared override so panel B matches panel A's font/size/weight exactly.
-  # Sentence-case axis titles to match panel A. Lay the discrete rate-ratio
-  # bands out in a single horizontal row along the bottom (one-line title above)
-  # so the legend consumes width rather than vertical plot height; centre the
-  # legend so the long title is not clipped at the figure edge.
+  # Sentence-case axis titles to match panel A. The rate-ratio bands are shown
+  # as a single horizontal stepped colourbar (plot_contour_heatmap uses a binned
+  # fill scale + guide_colorsteps) with the numeric band boundaries labelled
+  # beneath the bar -- more elegant than a grid of discrete keys, and the binned
+  # palette draws the identical plasma colours so panel A's ribbons still match.
   p_b <- heatmap$p_sim_heatmap +
     labs(x = "ART govt. funding reduction (%)",
          y = "PrEP govt. funding reduction (%)") +
-    # Re-apply the fill scale with drop = TRUE so only the bands actually
-    # present in the 0-50% window get legend keys. plot_contour_heatmap() uses
-    # drop = FALSE (to show every band elsewhere), which here leaves a phantom
-    # trailing key with no swatch that overflows the row.
-    scale_fill_viridis_d(option = "plasma", drop = TRUE,
-                         name = "Mean incidence rate ratio at year 10") +
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE,
-                               title.position = "top", title.hjust = 0.5)) +
     theme_rand(font = chosen_font) +
     theme(panel.grid = element_blank(),
           legend.justification = "center") +
     shared_theme +
-    # Tighten the swatches, text and inter-key spacing so all six rate-ratio
-    # bands fit in a single centred row under panel B (its column is only half
-    # the figure width, so the default key size overflows the right edge).
-    theme(legend.text     = element_text(family = chosen_font, size = base_size - 2),
-          legend.key.width = unit(0.45, "cm"),
-          legend.key.height = unit(0.45, "cm"),
-          legend.key.spacing.x = unit(0.15, "cm"))
+    # Size the colourbar: wide and short so the numeric break labels sit legibly
+    # beneath it, matching panel A's legend text size. The top margin on the
+    # legend text nudges the numeric break labels down so they don't sit flush
+    # against the bar.
+    theme(legend.text     = element_text(family = chosen_font, size = base_size - 1,
+                                         margin = margin(t = 4)),
+          legend.key.width  = unit(1.7, "cm"),
+          legend.key.height = unit(0.4, "cm"),
+          legend.ticks      = element_blank())
 
   # ---- Assemble ------------------------------------------------------------
   p <- (p_a | p_b) +
     plot_layout(widths = c(1, 1)) +
-    plot_annotation(tag_levels = "A") &
-    theme(plot.tag = element_text(face = "bold"))
+    # Parenthesised panel tags "(A)"/"(B)" to match the forest plot's panel
+    # titles, rather than the bare "A"/"B" that tag_levels alone produces.
+    plot_annotation(tag_levels = "A", tag_prefix = "(", tag_suffix = ")") &
+    theme(plot.tag = element_text(face = "bold", size = base_size + 1))
 
   if (!is.null(save_path)) {
     grDevices::pdf(paste0(save_path, ".pdf"), width = width, height = height)
