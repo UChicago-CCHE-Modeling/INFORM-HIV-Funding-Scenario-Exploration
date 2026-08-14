@@ -4,6 +4,12 @@
 \usepackage{geometry}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{xurl}    % allow \url (and hence our file-path/identifier refs) to
+                     % break at underscores/hyphens, not just slashes --
+                     % plain \texttt{} has no break points at all and long
+                     % paths/identifiers overflow the margin (see report/README.md)
+\hypersetup{hidelinks}  % \url is used here for line-breaking, not as real
+                        % clickable links -- suppress the colored box border
 \usepackage{array}
 \usepackage{graphicx}
 \usepackage{caption}
@@ -26,7 +32,7 @@
 \begin{abstract}
 \noindent
 Part~I of this memo reproduces the August 10, 2026 meeting follow-up
-(\texttt{INFORM-HIV-Analysis/Raff\_tmp/gamma\_prep\_meeting\_followup.tex}),
+(\url{INFORM-HIV-Analysis/Raff_tmp/gamma_prep_meeting_followup.tex}),
 which identified that the model's PrEP private-insurance-floor parameter
 ($r = 0.78$, national) is likely too high for INFORM-HIV's population
 (young Black MSM/TGW in Chicago) and proposed a working value of
@@ -218,7 +224,7 @@ We agreed to set $r \approx 25\%$ as a working value:
   \item \textbf{Re-run the cost-mapping layer with the revised parameters}
     --- regenerating the forest plot, the ribbon+heatmap panel, and the
     scenario table --- and mirror the same parameter change in
-    \texttt{INFORM-HIV-App}.
+    \url{INFORM-HIV-App}.
   \item Document the limitation explicitly in the supplementary appendix: a
     race/city-stratified PrEP payer-mix estimate does not appear to exist in
     the published literature.
@@ -234,14 +240,14 @@ Part~II below carries out item 4 above as an exploratory sensitivity check
 \section{What was run}
 \label{sec:methods}
 
-Using \texttt{04\_cost\_mapping/sensitivity/} (branch
-\texttt{sensitivity/gamma-prep-r-p0} of
-\texttt{INFORM-HIV-Funding-Scenario-Exploration}), we recalibrated
+Using \url{04_cost_mapping/sensitivity/} (branch
+\url{sensitivity/gamma-prep-r-p0} of
+\url{INFORM-HIV-Funding-Scenario-Exploration}), we recalibrated
 $\gamma_{\text{PrEP}}$ and $\beta_{\text{PrEP}}$ from a chosen $(r, P^0)$
 pair via Eqs.~\eqref{eq:alpha_cal}--\eqref{eq:beta_cal}
-(\texttt{R/recalibrate.R}), then queried the same stage-03 incidence
+(\url{R/recalibrate.R}), then queried the same stage-03 incidence
 surrogate and common-random-numbers machinery
-(\texttt{compute\_scenario\_draws\_crn()}) the main-text forest plot uses,
+(\url{compute_scenario_draws_crn()}) the main-text forest plot uses,
 without rebuilding the full $101\times101$ grid. Three parameter sets:
 
 \begin{itemize}
@@ -253,14 +259,14 @@ without rebuilding the full $101\times101$ grid. Three parameter sets:
 \end{itemize}
 
 Two important scope notes: (1) this uses only the pure-computation modules
-(\texttt{parameters.R}, \texttt{irr\_common\_random\_numbers.R}) and plain
-\texttt{ggplot2} output --- it does \textbf{not} use
-\texttt{plot\_forest.R}/\texttt{plot\_ribbon.R}, which require the RAND
-house-style package \texttt{randplot} that is not currently installed and
+(\url{parameters.R}, \url{irr_common_random_numbers.R}) and plain
+\url{ggplot2} output --- it does \textbf{not} use
+\url{plot_forest.R}/\url{plot_ribbon.R}, which require the RAND
+house-style package \url{randplot} that is not currently installed and
 will need to be requested from Pedro before the paper's actual figures can
 be regenerated with the revised parameter. (2) Nothing in
-\texttt{cost\_params.yml} or the tracked \texttt{output/} directory on
-\texttt{main} was touched --- the paper's currently committed $r=0.78$
+\url{cost_params.yml} or the tracked \url{output/} directory on
+\url{main} was touched --- the paper's currently committed $r=0.78$
 baseline is unchanged.
 
 \section{Case comparison: current vs.\ revised $r$}
@@ -384,13 +390,13 @@ conclusions.
 \label{sec:status}
 
 This is an exploratory sensitivity check, not a revision to the paper. The
-committed baseline on \texttt{main} ($r=0.78$) is unchanged. Before the
+committed baseline on \url{main} ($r=0.78$) is unchanged. Before the
 revised parameter can be adopted in the paper's actual figures (which use
-the RAND house style via \texttt{randplot}), we need: (1) AFC's input on a
-defensible $r$, and (2) the \texttt{randplot} package, which is not
+the RAND house style via \url{randplot}), we need: (1) AFC's input on a
+defensible $r$, and (2) the \url{randplot} package, which is not
 currently installed anywhere accessible and will be requested from Pedro.
 Item~4 of the action plan (mirroring the change into
-\texttt{INFORM-HIV-App}) is likewise deferred until $r$ is actually
+\url{INFORM-HIV-App}) is likewise deferred until $r$ is actually
 adopted.
 
 \end{document}
