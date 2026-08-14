@@ -1,5 +1,5 @@
 Monte Carlo sensitivity: N=200 draws, r ~ U(0.125, 0.375), P0 ~ U(0.120, 0.360)
-Scenario queried: reduce ART+PrEP both by 25% government funding, year-10-averaged IRR
+Scenario queried: reduce ART+PrEP both by 25% government funding, IRR averaged over the trajectory horizon
 IRR range across draws: [1.4574, 1.4914], mean=1.4741
 cor(irr_mean, r)  = -1.0000  (expected: strongly negative -- higher r = more privately-insured/cut-immune PrEP users = smaller funding pass-through)
 cor(irr_mean, P0) = -0.0159  (expected: ~0, P0 cancels out algebraically)

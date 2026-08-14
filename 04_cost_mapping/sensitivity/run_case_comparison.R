@@ -126,7 +126,7 @@ forest_plot <- ggplot(case_comparison,
                  height = 0.3, position = position_dodge(width = 0.6)) +
   geom_point(size = 2.5, position = position_dodge(width = 0.6)) +
   facet_wrap(~scenario, ncol = 1) +
-  labs(x = "Mean incidence rate ratio (year-10, vs. no-cut baseline)",
+  labs(x = "Mean incidence rate ratio (vs. no-cut baseline)",
        y = "Government funding reduction (%)",
        color = NULL,
        title = "PrEP payer-mix sensitivity: r=0.78 (current) vs r=25% (proposed)",

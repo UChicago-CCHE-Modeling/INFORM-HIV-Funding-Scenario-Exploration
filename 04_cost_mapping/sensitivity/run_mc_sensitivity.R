@@ -73,7 +73,7 @@ cor_p0 <- cor(mc_results$irr_mean, mc_results$P0)
 summary_lines <- c(
   sprintf("Monte Carlo sensitivity: N=%d draws, r ~ U(%.3f, %.3f), P0 ~ U(%.3f, %.3f)",
           N, r_mode * 0.5, r_mode * 1.5, p0_mode * 0.5, p0_mode * 1.5),
-  sprintf("Scenario queried: reduce ART+PrEP both by %.0f%% government funding, year-10-averaged IRR", FUNDING_CUT * 100),
+  sprintf("Scenario queried: reduce ART+PrEP both by %.0f%% government funding, IRR averaged over the trajectory horizon", FUNDING_CUT * 100),
   sprintf("IRR range across draws: [%.4f, %.4f], mean=%.4f", min(mc_results$irr_mean), max(mc_results$irr_mean), mean(mc_results$irr_mean)),
   sprintf("cor(irr_mean, r)  = %.4f  (expected: strongly negative -- higher r = more privately-insured/cut-immune PrEP users = smaller funding pass-through)", cor_r),
   sprintf("cor(irr_mean, P0) = %.4f  (expected: ~0, P0 cancels out algebraically)", cor_p0)
