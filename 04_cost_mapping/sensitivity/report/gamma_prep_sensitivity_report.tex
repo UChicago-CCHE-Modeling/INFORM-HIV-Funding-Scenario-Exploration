@@ -38,8 +38,8 @@ which identified that the model's PrEP private-insurance-floor parameter
 (young Black MSM/TGW in Chicago) and proposed a working value of
 $r \approx 25\%$. Part~II presents the results of actually running that
 revised value through the cost-mapping pipeline: a point-estimate
-comparison against the current committed baseline, and a small Monte Carlo
-sensitivity sweep over $r$ and the baseline PrEP coverage anchor $P^0$.
+comparison against the current committed baseline, and a small two-parameter
+exploratory sweep over $r$ and the baseline PrEP coverage anchor $P^0$.
 \end{abstract}
 \tableofcontents
 \bigskip
@@ -184,9 +184,12 @@ this claim numerically.}
   \item A targeted literature search (AIDSVu/PrEPVu.org, CDC MMWR 2019
     23-urban-areas NHBS report, the AJPH 2021 Medicaid-expansion NHBS study
     covering 22 cities including Chicago, and a 2018--2022 pharmacoequity
-    claims analysis) confirmed that \textbf{no published source crosses
-    race/ethnicity with PrEP-payer type}. This looks like a genuine gap in
-    the literature.
+    claims analysis) found that \textbf{no source was identified in our
+    targeted search that crosses race/ethnicity with PrEP-payer type}. This
+    looks like a genuine gap in the literature, though our search was not
+    exhaustive and is not documented here with full search terms, dates, or
+    a formal bibliography --- treat this as a preliminary finding, not a
+    systematic review.
   \item The Black--white PrEP-use gap persists \emph{even among the
     insured}, and the AJPH study found the racial gap persists regardless
     of Medicaid-expansion status --- insurance/payer source is not the
@@ -282,6 +285,16 @@ directly confirming the analytical claim in Section~\ref{sec:equation}:
 $(P^0-\gamma_{\text{PrEP}})/P^0 = 1-r$ is algebraically independent of
 $P^0$. Only $r$ is shown in the table below as a result.
 
+\note{A note on what these intervals do and do not capture: they are the
+surrogate's posterior predictive intervals at a \emph{fixed} $(r, P^0)$
+pair, propagating only the fitted incidence surrogate's own predictive
+uncertainty. They do not propagate uncertainty in $r$ or $P^0$ themselves,
+in costs or funding totals, or in the additive coverage-model structure
+(Section~\ref{sec:equation}) --- those are separate, unquantified sources
+of uncertainty layered on top. Section~\ref{sec:mc} explores sensitivity to
+$r$ and $P^0$ directly, but as a parameter sweep, not as an interval that
+combines with the credible intervals below.}
+
 \begin{table}[htbp]
 \centering
 \caption{Mean incidence rate ratio (95\% CI) by scenario and funding-reduction level.}
@@ -331,32 +344,47 @@ revised $r$.}
 \label{fig:trajectory}
 \end{figure}
 
-\section{Monte Carlo sensitivity to $r$ and $P^0$}
+\section{Two-parameter exploratory sweep around $r=25\%$}
 \label{sec:mc}
 
-To check how sensitive the headline result is to uncertainty in the
-revised parameters themselves, we drew $N=200$ independent joint samples of
-$r \sim \text{Uniform}(0.125, 0.375)$ and $P^0 \sim
-\text{Uniform}(0.12, 0.36)$ (each $\pm 50\%$ around the Case~2 mode,
-$r=25\%$/$P^0=24\%$), recalibrated $\gamma_{\text{PrEP}}/\beta_{\text{PrEP}}$
-for each draw, and queried the single headline scenario (25\% government
-funding cut, both ART and PrEP) for each.
+This is a parameter sweep, not an uncertainty quantification: it explores
+how the headline result moves \emph{locally}, in a band around the proposed
+working value, not a robustness check against the full plausible range
+between the current committed $r=0.78$ and the proposal. We drew $N=200$
+independent joint samples of $r \sim \text{Uniform}(0.125, 0.375)$ and $P^0
+\sim \text{Uniform}(0.12, 0.36)$ (each $\pm 50\%$ around the Case~2 center
+value, $r=25\%$/$P^0=24\%$ --- a uniform distribution has no mode, so
+``center'' rather than ``mode'' is the accurate term), recalibrated
+$\gamma_{\text{PrEP}}/\beta_{\text{PrEP}}$ for each draw, and queried the
+single headline scenario (25\% government funding cut, both ART and PrEP)
+for each. \note{Because the sampled $r$ range (0.125--0.375) sits entirely
+below the current $r=0.78$, every draw necessarily shows more harm than the
+current baseline by construction of the range --- that is not, on its own,
+independent evidence that the harm-increase conclusion is robust across the
+full space from current to proposed. What this sweep \emph{does}
+legitimately establish is the first two bullets below: within that local
+band, the relationship is (a) close to linear in $r$ and (b) flat in $P^0$,
+which is the direct empirical trace of the algebraic relationship in
+Section~\ref{sec:equation}, not new evidence about the epidemiology.}
 
 \begin{itemize}
   \item IRR ranged from 1.457 to 1.491 across the 200 draws (mean 1.474).
   \item $\text{cor}(\text{IRR}, r) = -1.000$ --- an almost perfectly linear
-    relationship; lower $r$ (more Medicaid/ADAP-reliant payer mix) means a
-    larger funding pass-through and a higher incidence rate ratio.
+    relationship \emph{within this local band}; lower $r$ (more
+    Medicaid/ADAP-reliant payer mix) means a larger funding pass-through and
+    a higher incidence rate ratio.
   \item $\text{cor}(\text{IRR}, P^0) = -0.016$ --- statistically and
     practically zero, the empirical confirmation of the algebraic claim
-    that $P^0$ does not affect the incidence/IRR outcomes.
+    that $P^0$ does not affect the incidence/IRR outcomes \emph{within the
+    current post-hoc funding-to-coverage mapping} (see the Discussion below
+    for what this does and does not imply more broadly).
 \end{itemize}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/mc_irr_vs_r.png}
 \includegraphics[width=0.48\textwidth]{figures/mc_irr_vs_p0.png}
-\caption{Monte Carlo sensitivity ($N=200$ draws): incidence rate ratio at a
+\caption{Parameter sweep ($N=200$ draws): incidence rate ratio at a
 25\% funding cut vs.\ $r$ (left, strong negative relationship) and vs.\
 $P^0$ (right, no relationship).}
 \label{fig:mc-scatter}
@@ -373,19 +401,46 @@ the 200 $(r, P^0)$ draws.}
 \section{Discussion}
 \label{sec:discussion}
 
-The revised, population-appropriate payer-mix assumption ($r \approx 25\%$
+The revised, \emph{provisional} payer-mix assumption ($r \approx 25\%$
 rather than the national $r=0.78$) produces a materially larger projected
 harm from PrEP funding cuts than the paper's currently committed baseline,
 consistent with the meeting's hypothesis that the national figure
-understates this population's exposure. The effect is robust to a
-$\pm 50\%$ uncertainty band on $r$ itself (the sign and rough magnitude of
-the shift do not depend on the exact working value chosen within that
-range), and --- as anticipated analytically --- entirely insensitive to the
-separate, still-open question of the baseline PrEP coverage-level anchor
-$P^0$. This means the single highest-value next step from the memo's
-action plan (Section~\ref{sec:action}, item 3) is getting AFC's read on a
-defensible $r$; refining $P^0$ alone would not change the funding-cut
-conclusions.
+understates this population's exposure. \note{We deliberately avoid calling
+$r=25\%$ ``population-appropriate'' here: as Section~\ref{sec:summary}
+already says, no source crossing race/ethnicity with PrEP-payer type was
+found, so this is a working/illustrative scenario value from expert
+elicitation, not an empirically estimated parameter. There is also a
+definitional looseness worth flagging: $r$ is operationalized as ``fraction
+privately insured,'' used as a proxy for ``fraction whose PrEP access is
+immune to \emph{this specific} government funding cut.'' Those are not the
+same thing --- private insurance does not guarantee complete immunity to a
+funding cut, and some public-financing categories (e.g.\ state programs
+funded independently of the federal lines being cut) may also be unaffected
+by it. Sharpening $r$'s operational definition is a natural companion task
+to getting AFC's number.} Within the locally-sampled band around this
+proposed value (Section~\ref{sec:mc}), the sign and rough magnitude of the
+shift do not change --- but that band was centered on the proposal and does
+not extend up to the current $r=0.78$, so this is evidence of local
+stability near the proposed value, not a robustness claim spanning the full
+current-to-proposed range.
+
+Separately, the analysis is --- as anticipated analytically --- insensitive
+to the baseline PrEP coverage-level anchor $P^0$, but only \emph{within the
+current post-hoc funding-to-coverage mapping layered on top of the existing,
+already-fitted ABM/surrogate}: $P^0$ cancels out of the coverage-reduction
+fraction fed to the surrogate query, by construction of
+$\gamma_{\text{PrEP}}=r P^0$. \note{This does not mean baseline PrEP
+coverage is epidemiologically irrelevant in general, or that a
+population-specific $P^0=24\%$ has been validated as a substitute for the
+$\approx36\%$ the ABM/surrogate was actually built around. If $P^0=24\%$ is
+intended as a genuinely corrected baseline for the simulated population ---
+not just a bookkeeping input to this cost-mapping layer --- that would
+require assessing whether the underlying ABM calibration and surrogate need
+to be revisited, which is outside the scope of this post-hoc analysis.}
+This means the single highest-value next step from the memo's action plan
+(Section~\ref{sec:action}, item 3) is getting AFC's read on a defensible
+$r$; refining $P^0$ alone, within the current architecture, would not
+change the funding-cut conclusions reported here.
 
 \subsection{Status}
 \label{sec:status}
