@@ -1,0 +1,4 @@
+name,r_prep,r_vs,status,source
+point,0.30,0.0875,provisional_placeholder,"Back-calculated from the mock-up Delta=(0.50,0.35) at median gamma (0.40,0.75); NOT a survey value"
+range_low,0.15,0.03,provisional_placeholder,"Mock-up Delta box lower corner (0.25,0.12) mapped at median gamma; NOT a survey value"
+range_high,0.48,0.20,provisional_placeholder,"Mock-up Delta box upper corner (0.80,0.80) mapped at median gamma; NOT a survey value"

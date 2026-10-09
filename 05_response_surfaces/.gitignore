@@ -1,0 +1,10 @@
+build/
+output/pdf/
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+TSWLatexianTemp_*
+__pycache__/

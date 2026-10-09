@@ -1,138 +1,127 @@
-\documentclass[11pt,a4paper]{article}
-\usepackage[utf-8]{inputenc}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{geometry}
-\geometry{margin=1in}
-
-\title{Proportional Funding Reductions and HIV Incidence: \\
-Response Surface Analysis}
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,graphicx,booktabs,geometry,caption,float,array,enumitem}
+\usepackage[hidelinks]{hyperref}
+\geometry{margin=0.8in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\captionsetup{font=small,labelfont=bf,hypcap=false}
+\title{Proportional Funding Reductions and HIV Incidence:\\Response Surfaces in Coverage-Reduction Space\\(Revised Interpretation of the Survey Inputs)}
 \author{INFORM-HIV Funding Scenario Exploration}
-\date{\today}
-
+\date{October 2026}
 \begin{document}
-
 \maketitle
 
-\section{Background and Motivation}
-
-The original analysis of funding cut scenarios relied on specific dollar amounts applied to government funding for ART and PrEP programs. However, this approach introduces several complications:
-\begin{itemize}
-  \item Dollar amounts are model-specific and may not generalize across contexts
-  \item Absolute funding levels obscure the policy-relevant parameter: the \emph{proportion} of funding reduced
-  \item Stakeholders need to understand sensitivity across a range of plausible reduction scenarios, not just discrete budget cut levels
+\section{What changed in this version, and why}
+In the previous version the stakeholder information (the ``elicited'' point and range) was drawn at fixed positions on the \emph{funding-loss} axes $\Delta$. During the team discussion on 7--8 October we re-read the survey questions (Table~\ref{tab:survey}) and concluded that this placed the stakeholder information in the wrong coordinate system:
+\begin{itemize}[nosep]
+\item Questions 1 and 2 ask for the \textbf{reduction in PrEP use and in ART adherence} relative to current use. These are values of the coverage reduction $r$.
+\item Questions 3 and 4 ask what share of current users could still obtain PrEP or ART by other means. These are the insulated shares $\gamma$.
+\item Funding losses $\Delta$ were \textbf{not} elicited. They are derived: $\Delta_j=r_j/(1-\gamma_j)$.
 \end{itemize}
+Consequently the stakeholder point and range are fixed in $r$-space and are only \emph{re-expressed} on the $\Delta$ axes, where they move with the insulation assumption.
+\begin{table}[htbp]\centering\small
+\begin{tabular}{@{}c>{\raggedright\arraybackslash}p{6.3cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{4.6cm}@{}}\toprule
+Item & Survey question (population: Black sexual minority men; horizon: next 10 years) & Quantity & Use in this report\\\midrule
+1 & How much reduction in PrEP use will there be compared to current rates of PrEP use? (0--100\%) & $r_{PrEP}$ & Location of the stakeholder point and range in $r$-space\\
+2 & How much reduction in ART adherence will there be compared to current rates of ART use? (0--100\%) & $r_{VS}$ (see note) & Same, viral-suppression axis\\
+3 & If funding goes down, what proportion of those who currently take PrEP will be able to access PrEP by other means? (0--100\%) & $\gamma_{PrEP}$ & Insulation cases; converts $r$ to $\Delta$\\
+4 & If funding goes down, what proportion of those with HIV currently on ART will be able to access ART by other means? (0--100\%) & $\gamma_{ART}$ & Same, ART\\\bottomrule
+\end{tabular}
+\caption{The four elicitation questions and how each enters the analysis. Note: item 2 asks about ART \emph{adherence}, whereas the model outcome is \emph{viral suppression}; treating one as a proxy for the other is an assumption that has to be confirmed. The questions did not specify a funding scenario, so no response is tied to a particular policy.}\label{tab:survey}
+\end{table}
 
-To address these concerns, we have reformulated the analysis using \textbf{proportional funding reductions} ($\Delta_j$) as the primary parameter. This framework decouples the health impact assessment from specific budgetary constraints and allows systematic exploration of funding policy across a continuum of scenarios.
+\textbf{Consequences.} (i) The incidence rate ratio (IRR) depends only on $r$. At a fixed stakeholder point the IRR is therefore the \emph{same} under every insulation assumption; the earlier statement that the elicited-point IRR ranges from 1.21 to 1.66 across insulation cases is withdrawn, as is the earlier fixed rectangle on the $\Delta$ axes and the earlier definition of P3. (ii) Insulation determines how large a funding loss is needed to produce a given $r$, and whether that $r$ is attainable at all, since $\Delta\le1$ requires $r_j\le1-\gamma_j$. (iii) The raw survey responses are not yet in hand. The point and range shown here are \textbf{provisional illustrative placeholders}, back-calculated from the earlier mock-up positions $\Delta=(0.50,0.35)$ at the median $\gamma$, and are not survey results. They will be replaced by respondent-level values; because respondents differ in both $r$ and $\gamma$, each respondent's pair must satisfy $r_j\le1-\gamma_j$, and combining one respondent's $r$ with another's $\gamma$ can manufacture an inconsistent case.
 
-\section{Approach: Proportional Reduction Framework}
-
-We define proportional reductions for each intervention $j$ (ART or PrEP) as:
+\section{Definitions and cases}
+Let $r_{PrEP}$ be the proportional reduction in PrEP use and $r_{VS}$ the proportional reduction in viral suppression (the ART channel). Let $\Delta_{prevention}$ be the proportional reduction in prevention funding and $\Delta_{Medicaid}$ the proportional loss of Medicaid coverage among people in HIV care (mapped one-to-one to the ART channel). With $\gamma_j$ the insulated share of current users,
 \[
-\Delta_j \in [0, 0.75]
+ r_j=\Delta_j(1-\gamma_j),\qquad \Delta_j=\frac{r_j}{1-\gamma_j}.
 \]
-where $\Delta_j$ represents the fraction of baseline government funding that is reduced (e.g., $\Delta_{\text{ART}} = 0.40$ means a 40\% cut to government ART funding).
+The surrogate gives the IRR as a function of $(r_{PrEP},r_{VS})$ only, over $[0,0.75]^2$. The insulation share does not enter the model; it only translates between $r$ and $\Delta$. We use the survey medians ($\gamma_{PrEP}=0.40$, $\gamma_{ART}=0.75$) and relative $\pm25\%$ variations as a deliberate sensitivity exercise (not survey bounds or confidence intervals). Because $\Delta\le1$, the largest reachable $r_j$ is $1-\gamma_j$.
+\begin{center}\small
+\begin{tabular}{lcccc}\toprule
+Case & $\gamma_{PrEP}$ & $\gamma_{ART}$ & reachable $r_{PrEP}$ & reachable $r_{VS}$\\\midrule
+Lower insulation & 0.30 & 0.5625 & $\le0.70$ & $\le0.4375$\\
+Survey-median insulation & 0.40 & 0.75 & $\le0.60$ & $\le0.25$\\
+Higher insulation & 0.50 & 0.9375 & $\le0.50$ & $\le0.0625$\\\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Scenarios (provisional definitions, in $r$-space).} P1: treatment component only, $(0,\,r^*_{VS})$. P2: prevention component only, $(r^*_{PrEP},\,0)$. P3: both, $(r^*_{PrEP},\,r^*_{VS})$, which coincides with the provisional illustrative point. The placeholder values are $r^*_{PrEP}=0.30$ and $r^*_{VS}=0.0875$, with a placeholder range $r_{PrEP}\in[0.15,0.48]$, $r_{VS}\in[0.03,0.20]$. These definitions replace the earlier ones (P3 was previously ``prevention eliminated plus Medicaid change'').
 
-\subsection{Panel A: Direct Intervention Use Reduction}
+\textbf{Outcome.} All results are the IRR in the \textbf{final year} (post-intervention year 10), not an average over the trajectory. Intervals are 95\% model-uncertainty intervals over 100 calibration checkpoints $\times$ 50 surrogate draws, with common random numbers.
 
-In the simplest scenario, a funding cut translates directly to a proportional reduction in intervention coverage:
-\[
-r_j^{(\text{direct})} = \Delta_j
-\]
-where $r_j$ is the proportional reduction in coverage. This panel shows the \emph{maximum impact} scenario, assuming no mitigation via private insurance substitution or other mechanisms.
-
-\subsection{Panel B: Funding Reduction with Cost-Model Adjustment}
-
-In reality, some individuals may maintain access to interventions through alternative funding sources (e.g., private insurance). We model this using an insulation parameter $\gamma_j$ representing the baseline coverage floor due to non-government funding:
-\[
-r_j^{(\text{mapped})} = \Delta_j \times \frac{P_j^{\text{baseline}} - \gamma_j}{P_j^{\text{baseline}}}
-\]
-where:
-\begin{itemize}
-  \item $P_j^{\text{baseline}}$ = baseline (pre-cut) coverage proportion
-  \item $\gamma_j$ = coverage maintained via non-government funding (private insurance floor)
-  \item The factor $\frac{P_j^{\text{baseline}} - \gamma_j}{P_j^{\text{baseline}}}$ represents the share of coverage dependent on government funding
-\end{itemize}
-
-For the base case:
-\begin{align}
-P_{\text{ART}}^{\text{baseline}} &= 0.6115, \quad \gamma_{\text{ART}} = 0.15, \quad \text{effective factor} = 0.7547 \\
-P_{\text{PrEP}}^{\text{baseline}} &= 0.3594, \quad \gamma_{\text{PrEP}} = 0.28, \quad \text{effective factor} = 0.2210
-\end{align}
-
-This panel shows the \emph{realistic impact} scenario, accounting for partial buffering via alternative funding sources.
-
-\subsection{Response Surface Output}
-
-For each proportional reduction pair $(\Delta_{\text{ART}}, \Delta_{\text{PrEP}})$ on a 101 $\times$ 101 grid (0 to 0.75 in 0.0075-unit steps), we query the INFORM-HIV stage-03 composite incidence surrogate (Gaussian Process trained on 100+ ABM calibration checkpoints) to obtain:
-\begin{itemize}
-  \item Mean incidence rate ratio (IRR) vs. baseline
-  \item 95\% posterior credible interval (from surrogate uncertainty)
-\end{itemize}
-
-All 10,201 grid points per panel represent \emph{actual surrogate predictions}—no interpolation between points.
-
+\clearpage
 \section{Results}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.93\textwidth]{output/fig_r_surface_final.png}
+\caption{Final-year IRR over the coverage-reduction domain. This surface is the same under every insulation assumption. \textbf{How to read it:} each point is a pair of coverage reductions; for example P3 $(r_{PrEP}=0.30,\ r_{VS}=0.0875)$ has an IRR of about 1.43, i.e.\ roughly 43\% higher incidence than the status quo at year 10 (95\% interval 1.28--1.61). The hatched box is the provisional illustrative range. The three outlined rectangles show the part of the surface that can be reached with a funding loss $\Delta\le1$ under each insulation case; they start at the origin and end at $r_j=1-\gamma_j$. Higher insulation reaches only a thin strip of the surface ($r_{VS}\le0.0625$), and P1 and P3 lie outside it. The percentage-point axes are approximate: they use 23\% PrEP use and 61\% viral suppression as reference baselines, apply only to the secondary labels (not to the IRR), and still have to be reconciled with the checkpoint-specific baselines.}
+\end{figure}
 
-\subsection{Panel A: Intervention Use Reduction (Direct)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{output/fig_delta_mapping_final.png}
+\caption{The same surface expressed on the funding-loss axes $\Delta$, one panel per insulation case. The color scale and contour levels are shared; interior $y$-axes are omitted. \textbf{What changes between panels} is where the fixed $r$-space points and range fall: a given $r$ requires a larger $\Delta$ as insulation increases, so the stakeholder box is displaced and stretched, and in the higher-insulation panel P1 and P3 (red triangles) would require $\Delta_{Medicaid}=1.40$ and are not attainable. The color inside the box does not change from panel to panel, because the IRR depends only on $r$. The color scale ends at about 2.8 here and about 3.5 in Figure~1 because $\Delta\le1$ reaches only part of the $r$-surface.}
+\end{figure}
 
-\begin{center}
-  \includegraphics[width=0.95\textwidth]{output/fig_response_surface_intervention.png}
-\end{center}
+\input{output/tables_outcome_final.tex}
+\input{output/tables_mapping.tex}
 
-Panel A shows how incidence rate ratio varies with direct proportional reductions in both ART and PrEP coverage. The surface exhibits:
+\subsection*{Reading the results}
+At the provisional illustrative point, the final-year IRR is 1.43 (1.28--1.61). The treatment-only scenario P1 gives 1.22 (1.15--1.31) and the prevention-only scenario P2 gives 1.19 (1.05--1.36). The excess IRRs of P1 (0.22) and P2 (0.19) sum to 0.41, versus 0.43 for P3: the two components are close to additive, with a slight excess; intervals overlap widely. All values are conditional on the provisional placeholders and the three insulation cases; the intervals reflect model and surrogate uncertainty only.
+
+The insulation assumption does not change these health outcomes at a fixed $r$. It changes the funding interpretation. For the same point, the implied losses are $(\Delta_{prevention},\Delta_{Medicaid})=(0.43,0.20)$ under lower insulation, $(0.50,0.35)$ at the survey medians, and $(0.60,1.40)$ under higher insulation, the last of which is not attainable. Stated differently, if the stakeholders' expected reductions are as large as the placeholder values, then high insulation of ART is inconsistent with them: with 94\% of ART users insulated, even complete loss of Medicaid coverage could reduce viral suppression by at most 6\%.
+
+\clearpage
+\appendix
+\section{Supplementary information}
+\subsection{Additional plots and tables}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{output/fig_points_final.png}
+\caption{Final-year IRR at the provisional points P1--P3. Left: distribution of the surrogate draws (box: interquartile range; whiskers: 2.5th to 97.5th percentile). Right: mean percentage increase in incidence with 95\% intervals. These describe model uncertainty only.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{output/fig_funding_slices_final.png}
+\caption{Final-year IRR against $\Delta_{prevention}$ at fixed Medicaid loss ($\Delta_{Medicaid}=0$, $0.35$ as an illustrative level, and $1$), for each insulation case, with 95\% intervals (shaded, with dotted edges). These curves are in funding space and therefore do depend on the insulation case; they are not tied to the stakeholder point.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{output/fig_r_surface_year5.png}
+\caption{Year-5 IRR over the coverage-reduction domain (own color scale), with the same overlays as Figure~1.}
+\end{figure}
+\input{output/tables_outcome_year5.tex}
+
+\clearpage
+\subsection{How we arrived at this set of plots}
+\textbf{From dollars to proportions.} The first analysis expressed cuts in dollars. Interpreting dollar changes requires assumptions about which funding streams reach the modeled population, which are hard to defend. The team moved to proportional reductions without dollar amounts or iso-dollar lines; a dollar translation can return in the interactive tool.
+
+\textbf{Two coordinate systems.} Anna's example figures separate a funding view ($\Delta$ axes with the resulting $r$ on secondary axes) from a pure coverage view with absolute percentage-point axes. The percentage-point axes matter because the same proportional reduction removes much more coverage from viral suppression (about 61\%) than from PrEP (about 23\%): PrEP cannot lose more than its baseline, roughly 17 points at $r_{PrEP}=0.75$.
+
+\textbf{Interaction plots.} Multi-line interaction plots were judged hard to read and the interaction small; a table of treatment-only, prevention-only and combined reductions was preferred. P1, P2 and P3 now provide exactly this comparison.
+
+\textbf{Final year, not the trajectory mean.} The paper reports the final year, since IRRs change over time. In rebuilding the figures we found that the earlier ``tick 10'' is surrogate row 10 (the ninth intervention year); the final year is row 11 (simulation year 32, post-intervention year 10; row 6 is year 5). Earlier horizon-mean and row-10 results should not be quoted as final-year values.
+
+\textbf{Which $\gamma$.} Options discussed: separate exemplar cases (shows how much the assumption matters); integrating over a $\gamma$ distribution (hides the individual effect); or a compromise, exemplar cases in the paper and both user-chosen insulation and optional integration in the app. The compromise was favored. With only five survey responses there is no defensible interval, so we use relative $\pm25\%$ around the medians. The survey minimums (0.14 PrEP, 0.15 ART) would require $r$ up to about 0.86, beyond the range on which the surrogate was trained ($r\le0.75$), so they are not shown.
+
+\textbf{The correction in this version.} On 7--8 October the team re-read the elicitation questions and recognized that the stakeholder values are reductions in use ($r$) and insulated shares ($\gamma$), not funding losses. Jonathan and Anna independently reached this reading, and it is consistent with the question wording (Table~\ref{tab:survey}). The earlier $\Delta$-space placement of the stakeholder box was a placeholder from the mock-up; the figures were rebuilt in $r$-space. The visual comparison across insulation cases is less dramatic as a result (the IRR inside the box no longer changes), but it is now correct, and the attainability of the points under each case is itself informative.
+
+\textbf{Communication.} Figures with two sets of axes are dense for a public-health readership (the target journal is Lancet HIV). The team favored keeping the figures but making captions self-contained, with a worked reading and the definitions of P1--P3, and placing the more complex funding-mapping figure after a simple $r$-space figure (not as the first figure in the paper). A $2\times2$ composite (one $r$-space panel and the median $\Delta$ panel, or all) remains an option.
+
+\textbf{Baselines.} The meeting discussed a PrEP baseline of about 23\% and an ART/viral-suppression baseline of 61\%. With the saved surrogate these baselines do not change the IRR at a given $r$; they only scale the percentage-point labels. The source of the 23\% is not settled: saved calibration data suggest a PrEP input of about 0.20 and realized pre-intervention use of about 19\%.
+
+\subsection{Still to be done or confirmed}
 \begin{itemize}
-  \item Strong asymmetry: ART cuts have roughly 2–3$\times$ larger impact on incidence than equivalent PrEP cuts
-  \item Non-linear response: the effect of combined cuts is approximately additive in log-risk space
-  \item Maximum IRR $\approx 3.56$ at $(\Delta_{\text{ART}}, \Delta_{\text{PrEP}}) = (0.75, 0.75)$—a 256\% increase in incidence
+\item \textbf{Obtain the raw survey responses} ($r_{PrEP}$, $r_{VS}$, $\gamma_{PrEP}$, $\gamma_{ART}$ per respondent) and replace the placeholders. Check $r_j\le1-\gamma_j$ for each respondent and report implied $\Delta$ and attainability per respondent, rather than pairing separate medians.
+\item Ask AFC to confirm the expected prevention-funding reduction and the proportion of Black sexual minority men expected to lose Medicaid coverage; consider sending each respondent a figure based on their own answers to check consistency (the survey was anonymous, so this would go through AFC).
+\item Confirm that ``ART adherence'' (item 2) may stand in for viral suppression.
+\item Confirm the origin of the 23\% PrEP baseline, or drop the percentage-point axes from the main figure.
+\item Confirm the $\pm25\%$ insulation cases or supply survey-based bounds; consider mixed $(\gamma_{PrEP},\gamma_{ART})$ combinations.
+\item Decide whether to extend the surrogate beyond $r=0.75$.
+\item Update the paper text to the final-year definition (row 11) and to the $r$-space interpretation.
+\item New simulation runs: hysteresis and recovery time after a period of reduced funding (checkpoint after the reduction, restore coverage, measure time to return to baseline incidence; possible start-up costs raise the funding needed per unit of $r$). App: user-selectable insulation, optional integration over $\gamma$, dollar translation.
 \end{itemize}
-
-Right-hand slices show sensitivity to PrEP cuts across fixed ART reduction levels, illustrating the dominant role of ART in determining population impact.
-
-\subsection{Panel B: Government Funding Reduction (Cost-Model Mapped)}
-
-\begin{center}
-  \includegraphics[width=0.95\textwidth]{output/fig_response_surface_funding.png}
-\end{center}
-
-Panel B applies the cost-model adjustment, showing how government funding cuts map to effective coverage losses after accounting for private insurance substitution. Comparing to Panel A:
-\begin{itemize}
-  \item IRR values are 19–21\% lower for equivalent $\Delta$ values
-  \item The ``buffer'' effect of the insulation parameter is most pronounced for PrEP (lower government-funded baseline)
-  \item Maximum IRR $\approx 3.56$ still occurs at high cut levels, but the slope in the low-to-moderate range ($\Delta < 0.40$) is less steep
-\end{itemize}
-
-This reflects the realistic scenario where some individuals retain access via alternative channels even if government funding is substantially reduced.
-
-\subsection{Comparison and Uncertainty}
-
-\begin{center}
-  \includegraphics[width=0.95\textwidth]{output/fig_response_surfaces_comparison.png}
-\end{center}
-
-The comparison figure displays both panels side-by-side with 95\% credible intervals (shaded bands) for three representative scenarios, illustrating the surrogate's prediction uncertainty.
-
-\section{Interpretation and Next Steps}
-
-\begin{enumerate}
-  \item The response surface framework enables \emph{continuous} exploration of funding policy space, not just discrete scenarios
-  \item Proportional reductions ($\Delta_j$) are interpretable and context-agnostic, facilitating communication with policy stakeholders
-  \item Panel A vs Panel B highlights the importance of cost-model assumptions—the ``true'' impact lies between these extremes depending on actual insulation parameters
-  \item Further analysis can overlay named policy scenarios (e.g., ``10\% ART + 25\% PrEP'') directly on these surfaces
-\end{enumerate}
-
-\section{Feedback Requested}
-
-Before finalizing this analysis for the paper, we seek input on:
-
-\begin{enumerate}
-  \item \textbf{Gamma parameter ranges:} Should we explore sensitivity to $\gamma_{\text{ART}}$ and $\gamma_{\text{PrEP}}$, and if so, what ranges would be relevant?
-  \item \textbf{Proportional reduction range:} The current display extends to $\Delta = 0.75$ (75\% cuts). Should we focus on $\Delta \leq 0.40$ (40\% cuts) for policy relevance?
-  \item \textbf{Policy scenario labeling:} Should we identify specific named scenarios (e.g., ``P1: 10\% ART, 20\% PrEP'') and highlight them on the surfaces?
-  \item \textbf{Time horizon:} Should these surfaces reflect horizon-mean IRR (current) or year-10 specific predictions?
-\end{enumerate}
-
 \end{document}

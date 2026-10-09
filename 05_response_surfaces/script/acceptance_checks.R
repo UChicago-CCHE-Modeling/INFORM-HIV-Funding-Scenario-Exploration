@@ -10,7 +10,12 @@
 # Read-only w.r.t. the deliverables; writes /tmp only.
 # =============================================================================
 
-COST_DIR <- "/Users/r_vardavas/Documents/Projects_2026/HIV-UChicago/INFORM-HIV-Funding-Scenario-Exploration/04_cost_mapping"
+args <- commandArgs(trailingOnly = FALSE)
+script_file <- sub("^--file=", "", args[grepl("^--file=", args)][1])
+SCRIPT_DIR <- dirname(normalizePath(script_file))
+STAGE_DIR <- dirname(SCRIPT_DIR)
+REPO_DIR <- dirname(STAGE_DIR)
+COST_DIR <- file.path(REPO_DIR, "04_cost_mapping")
 setwd(file.path(COST_DIR, "script"))
 
 # plot_forest.R needs randplot (not installed here); stub that one package only.
@@ -54,6 +59,7 @@ stopifnot(!any(is.na(m)))
 rep_maxdiff <- function(col) max(abs(committed[[col]] - repro[[col]][m]))
 forest_checks <- c(mean = rep_maxdiff("mean"), lower = rep_maxdiff("lower"),
                    upper = rep_maxdiff("upper"))
+stopifnot(all(is.finite(forest_checks)), all(forest_checks < 1e-9))
 both40 <- committed$panel == "B. Government funding reduction" &
   committed$scenario == "Reduce both PrEP and ART" & committed$reduction == 0.40
 use40 <- committed$panel == "A. Intervention use reduction" &
@@ -87,7 +93,8 @@ b <- summarise_draws(compute_scenario_draws_crn(
 ref <- data.frame(art_red = -probe[, 1], prep_red = -probe[, 2],
                   art_cov = -probe_map[, 1], prep_cov = -probe_map[, 2],
                   A_ref = a$mean, B_ref = b$mean)
-write.csv(ref, "/tmp/accept_r_values.csv", row.names = FALSE)
+dir.create(file.path(STAGE_DIR, "build"), showWarnings = FALSE)
+write.csv(ref, file.path(STAGE_DIR, "build", "accept_r_values.csv"), row.names = FALSE)
 
 cat("\n=== (B) independent R reference (horizon-mean, CRN) ===\n")
 print(ref, row.names = FALSE, digits = 8)

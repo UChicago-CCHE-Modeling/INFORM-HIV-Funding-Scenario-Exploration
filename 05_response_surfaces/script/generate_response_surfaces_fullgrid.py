@@ -41,12 +41,12 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-CSV_PATH = Path(
-    "/Users/r_vardavas/Documents/Projects_2026/HIV-UChicago/"
-    "INFORM-HIV-Funding-Scenario-Exploration/04_cost_mapping/output/"
-    "response_surface_grid_full.csv")
-OUT_DIR = Path(__file__).resolve().parent        # the delivery folder
+STAGE_DIR = Path(__file__).resolve().parents[1]
+CSV_PATH = STAGE_DIR / "output" / "response_surface_grid_full.csv"
+OUT_DIR = STAGE_DIR / "output"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 TIME_SUMMARY = "horizon_mean"
+TIME_LABEL = {"horizon_mean": "horizon-mean IRR", "tick10": "tick-10 IRR"}[TIME_SUMMARY]
 CASE = None            # None -> auto-detect; must be unambiguous
 
 PANEL_A = "A. Intervention use reduction"
@@ -162,7 +162,7 @@ def draw_heatmap(ax, g, title, xlabel, ylabel):
     im = ax.contourf(X, Y, g["mean"], levels=levels, cmap=CMAP, norm=NORM)
     cs = ax.contour(X, Y, g["mean"], levels=np.arange(1.25, VMAX, 0.25),
                     colors="black", linewidths=0.4, alpha=0.35)
-    ax.clabel(cs, inline=True, fontsize=7, fmt="%.1f", colors="black")
+    ax.clabel(cs, inline=True, fontsize=7, fmt="%.2f", colors="black")
     for lv in POLICY_LEVELS:
         ax.axhline(lv, color="white", linewidth=0.8, linestyle=":", alpha=0.9, zorder=3)
         ax.axvline(lv, color="white", linewidth=0.8, linestyle=":", alpha=0.9, zorder=3)
@@ -231,7 +231,7 @@ draw_slices(ax2, SURF[PANEL_A],
             "Incidence rate ratio vs. status quo",
             "ART use reduction")
 fig.suptitle("Incidence rate ratio surface over intervention use reductions "
-             f"($\\Delta_j \\in [0, 0.75]$; horiz.-mean IRR, CRN; case: {CASE_USED})",
+             f"($\\Delta_j \\in [0, 0.75]$; {TIME_LABEL}, CRN; case: {CASE_USED})",
              fontsize=9, y=1.02)
 save(fig, "fig_response_surface_intervention.png")
 
@@ -253,7 +253,7 @@ draw_slices(ax2, SURF[PANEL_B],
             "Incidence rate ratio vs. status quo",
             "ART funding reduction")
 fig.suptitle("Incidence rate ratio surface over government funding reductions "
-             "(coverage mapped by the cost model; horiz.-mean IRR, CRN; "
+             f"(coverage mapped by the cost model; {TIME_LABEL}, CRN; "
              f"case: {CASE_USED})",
              fontsize=9, y=1.02)
 save(fig, "fig_response_surface_funding.png")
@@ -312,7 +312,7 @@ ax.grid(True, alpha=0.25); ax.tick_params(labelsize=8)
 ax.legend(fontsize=8, loc="upper left", framealpha=0.9)
 
 fig.suptitle("Same cut, two interpretations: coverage mapped through the cost "
-             f"model buffers the IRR (horiz.-mean IRR, CRN, shared colour scale; "
+             f"model buffers the IRR ({TIME_LABEL}, CRN, shared colour scale; "
              f"case: {CASE_USED})", fontsize=9, y=0.995)
 fig.tight_layout(rect=(0, 0, 1, 0.99))
 save(fig, "fig_response_surfaces_comparison.png")

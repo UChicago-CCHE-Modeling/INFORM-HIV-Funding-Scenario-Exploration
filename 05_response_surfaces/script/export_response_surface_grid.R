@@ -38,11 +38,19 @@
 #          across every chunk, panel and case (set.seed before each chunk), so
 #          every point shares the same z, the baseline is identical everywhere,
 #          and IRR(0,0) is exactly 1. Stronger than the Figure-1 CRN trick and
-#          it makes Panel B / Panel A ratios noise-cancelled.
+#          it reduces Monte Carlo variation in panel comparisons.
 #
 # Run from 04_cost_mapping/script:
 #   /usr/local/bin/Rscript export_response_surface_grid.R
 # =============================================================================
+
+args <- commandArgs(trailingOnly = FALSE)
+script_file <- sub("^--file=", "", args[grepl("^--file=", args)][1])
+SCRIPT_DIR <- dirname(normalizePath(script_file))
+STAGE_DIR <- dirname(SCRIPT_DIR)
+REPO_DIR <- dirname(STAGE_DIR)
+COST_DIR <- file.path(REPO_DIR, "04_cost_mapping")
+setwd(file.path(COST_DIR, "script"))
 
 library(data.table)
 library(hetGP)
@@ -112,6 +120,11 @@ cat(sprintf("grid: %d x %d = %d nodes per panel, Delta in [%.4f, %.4f]; policy n
 }
 
 surface_for <- function(case, tick, time_summary) {
+  if (is.null(case$k_art)) case$k_art <- k_art
+  if (is.null(case$k_prep)) case$k_prep <- k_prep
+  stopifnot(length(case$k_art) == 1, length(case$k_prep) == 1,
+            is.finite(case$k_art), is.finite(case$k_prep),
+            case$k_art >= 0, case$k_art <= 1, case$k_prep >= 0, case$k_prep <= 1)
   # Panel A: identity mapping (Delta_j = coverage reduction)
   a <- .irr_chunked(cbind(-grid$art_red, -grid$prep_red), tick)
   # Panel B: mapped to coverage through the cost model, then queried
@@ -156,7 +169,7 @@ cat(sprintf("  at Delta=(0.3975,0.3975): A = %.6f, B = %.6f, B/A = %.6f (insulat
             aa$mean, bb$mean, bb$mean / aa$mean))
 
 # ---- write ------------------------------------------------------------------
-output_path <- "../output/response_surface_grid_full.csv"
+output_path <- file.path(STAGE_DIR, "output", "response_surface_grid_full.csv")
 write.csv(out, output_path, row.names = FALSE)
 cat(sprintf("\nwrote %s  (%d rows)\n", output_path, nrow(out)))
 cat(sprintf("  Panel A horizon_mean range: %.4f - %.4f\n", min(A$mean), max(A$mean)))

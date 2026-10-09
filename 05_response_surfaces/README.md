@@ -1,94 +1,52 @@
-# Response Surface Analysis: Proportional Funding Reductions
+# Insulation-case response surfaces, r-space interpretation (October 2026)
 
-This folder contains the complete analysis of HIV incidence response to proportional funding reductions for ART and PrEP interventions.
+Survey items 1-2 elicit r (reduction in use), items 3-4 elicit gamma; Delta = r/(1-gamma) is derived. The IRR depends on r only, so stakeholder points are fixed in r-space and only re-expressed in Delta. Final year = surrogate row 11 (post-intervention year 10). Stakeholder values are PROVISIONAL placeholders in `script/stakeholder_inputs.csv` (replace with respondent-level survey values, check r <= 1 - gamma per respondent). Plan: `UPDATE_PLAN.md`.
 
-## Contents
-
-### Scripts
-- **`export_response_surface_grid.R`** — Generates the full 101×101 response surface grid by querying the stage-03 surrogate at every Δ pair. Outputs to `../04_cost_mapping/output/response_surface_grid_full.csv`
-- **`generate_response_surfaces_fullgrid.py`** — Reads the grid CSV and creates three publication-quality figures with contours and slices
-- **`acceptance_checks.R`** — Validates Panel A vs Panel B asymmetry, surrogate query correctness, and agreement with forest CSV benchmarks
-- **`acceptance_checks.py`** — Python-side validation of grid structure, orientation, and file output
-
-### Data
-- **`output/response_surface_grid_full.csv`** — 20,402 rows (10,201 per panel × 2 panels); contains art_red, prep_red, art_cov, prep_cov, mean IRR, and 95% credible interval bounds
-- **`output/fig_response_surface_intervention.png`** — Panel A surface + slices (direct Δ mapping)
-- **`output/fig_response_surface_funding.png`** — Panel B surface + slices (cost-model mapped)
-- **`output/fig_response_surfaces_comparison.png`** — Side-by-side panels with uncertainty bands
-
-### Documentation
-- **`proportional_funding_reductions_response_surfaces.tex`** — Main publication document with full methodology, math, embedded figures, and feedback requests
-
-## Quick Start
-
-### To regenerate the grid (requires R):
-```bash
-cd ../../04_cost_mapping/script
-/usr/local/bin/Rscript export_response_surface_grid.R
+```sh
+/usr/local/bin/Rscript 05_response_surfaces/script/export_gamma_cases.R   # ~6 min; r-space grid + Delta-grid cases
+python3 05_response_surfaces/script/acceptance_checks_gamma.py
+python3 05_response_surfaces/script/generate_gamma_case_figures.py
+cd 05_response_surfaces && PATH=$PATH:/Library/TeX/texbin latexmk -pdf -outdir=build proportional_funding_reductions_response_surfaces.tex
 ```
 
-### To regenerate the figures (requires Python + pandas, numpy, matplotlib):
-```bash
-python3 generate_response_surfaces_fullgrid.py
-# Outputs saved to output/
-```
-
-### To compile the LaTeX document:
-```bash
-pdflatex proportional_funding_reductions_response_surfaces.tex
-# Or use your preferred LaTeX editor
-```
-
-### To run validation checks:
-```bash
-# R checks
-/usr/local/bin/Rscript acceptance_checks.R
-
-# Python checks
-python3 acceptance_checks.py
-```
-
-## Key Parameters
-
-**Base case (from `cost_params.yml`):**
-- γ_ART = 0.15 (private insurance substitution floor)
-- γ_PrEP = 0.28
-- P_ART_baseline = 0.6115 (61.15% baseline coverage)
-- P_PrEP_baseline = 0.3594 (35.94% baseline coverage)
-- Effective factors: 0.7547 × Δ_ART, 0.2210 × Δ_PrEP
-
-**Grid specification:**
-- Δ range: 0.0 to 0.75 (0 to 75% reduction)
-- Grid points: 101 × 101 = 10,201 per panel
-- Step size: 0.0075 (uniformly spaced)
-
-## Panel Descriptions
-
-**Panel A: Direct Intervention Use Reduction**
-- Assumes funding cuts directly reduce coverage: r = Δ
-- Shows maximum potential health impact
-- IRR range: 1.0–3.56
-
-**Panel B: Government Funding Reduction (Cost-Model Mapped)**
-- Maps funding cuts to coverage via insulation parameters
-- Shows realistic impact accounting for alternative funding
-- IRR range: 1.0–3.56 (lower slopes in moderate range due to buffer)
-
-## Interpretation
-
-- Strong asymmetry: ART cuts have 2–3× larger impact than equivalent PrEP cuts
-- Non-linear response: effects roughly additive in log-risk space
-- Panel B impact is 19–21% lower than Panel A for same Δ values (buffering effect)
-- Response surfaces enable continuous policy exploration, not discrete scenarios
-
-## Next Steps (Awaiting Feedback)
-
-1. Gamma sensitivity ranges (γ_ART, γ_PrEP)
-2. Proportional reduction range for publication (0–0.4 vs 0–0.75)
-3. Named policy scenarios to highlight
-4. Time horizon (horizon-mean vs year-10)
+Outputs: `fig_r_surface_{final,year5}.png`, `fig_delta_mapping_final.png`, `fig_funding_slices_final.png`, `fig_points_final.png`, `tables_*.tex`, plus the CSVs. Note `tick` in the surrogate helpers is a one-based row index; older "tick10" outputs are row 10, not the final year. The sections below describe the earlier legacy-parameter version, kept for regression only.
 
 ---
 
-**Generated:** 2026-09-23  
-**Status:** Ready for stakeholder feedback
+
+# Proportional funding reductions: response surface update
+
+This folder contains the legacy-parameter response surfaces and a meeting report. It does not yet include stakeholder-gamma sensitivity cases or named policy bundles.
+
+## Reproduce from the repository root
+
+```sh
+Rscript 05_response_surfaces/script/export_response_surface_grid.R
+python3 05_response_surfaces/script/generate_response_surfaces_fullgrid.py
+Rscript 05_response_surfaces/script/acceptance_checks.R
+python3 05_response_surfaces/script/acceptance_checks.py
+cd 05_response_surfaces
+mkdir -p build output/pdf
+latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build proportional_funding_reductions_response_surfaces.tex
+cp build/proportional_funding_reductions_response_surfaces.pdf output/pdf/
+```
+
+On this Mac, LaTeX is installed at `/Library/TeX/texbin`; add it to PATH if needed. Python needs numpy, pandas, matplotlib and Pillow. R uses the existing stage-04 dependencies including hetGP, data.table and yaml; acceptance checks also load the forest-data helper and its dependencies.
+
+## Files and conventions
+
+- `script/export_response_surface_grid.R`: queries the surrogate, resolving repository paths from the script location; owns this stage's CSV.
+- `script/generate_response_surfaces_fullgrid.py`: reads this stage's CSV and writes all three PNGs into `output/`.
+- `script/acceptance_checks.R` and `.py`: reference queries, forest regression, mapping/orientation and output checks. Temporary reference values go to ignored `build/`.
+- `output/response_surface_grid_full.csv`: 43,264 rows; 104 x 104 nodes, two panels and two time summaries for one `committed` case. The 101 regular nodes per axis have exact 0.10/0.25/0.40 nodes added.
+- Three PNGs: direct-use surface/slices, funding surface/slices, and comparison. Current figures show horizon-mean IRR. Tick-10 predictions are also in the CSV.
+- `proportional_funding_reductions_response_surfaces.tex`: meeting update, definitions, measured results, limitations and feedback requests. PDF and LaTeX temporary files are ignored.
+- `email_draft.md`: draft only; not sent.
+
+Direct-use Delta is coverage loss. Funding Delta maps to coverage loss using `Delta * (1 - gamma_Anna)`, where `gamma_Anna = gamma_old / P_baseline`. Legacy insulated shares are 0.245287 ART and 0.779032 PrEP, giving multipliers 0.754713 and 0.220968. These are not the new stakeholder ranges.
+
+Horizon-mean means the mean across ticks of each draw's incidence ratio, then the mean across draws. It is not a cumulative-incidence ratio. Current maxima are 2.897383 (use) and 2.196442 (funding). At 40% both the means are 2.042997 and 1.645269. Bands are 95% surrogate predictive intervals under the existing common-random-number convention; the coupling reduces Monte Carlo variation, not all uncertainty.
+
+Adding cases: supply a name and coverage-loss multipliers (`k_art`, `k_prep`) in GAMMA_CASES; an omitted multiplier defaults to its legacy value. Select a case explicitly in the plotting script when exporting multiple cases. The acceptance comparisons target `committed`. TIME_SUMMARY can be `horizon_mean` or `tick10`; titles follow that selection. Save separate outputs if retaining multiple presentations.
+
+Timing note: the saved surrogate contains 11 trajectory rows; horizon_mean averages all 11. The existing table convention selects row 10. Confirm its calendar-year mapping before labeling tick10 as year 10.

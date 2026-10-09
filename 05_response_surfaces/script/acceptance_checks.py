@@ -21,15 +21,11 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-HERE = Path(__file__).resolve().parent
-CSV = Path("/Users/r_vardavas/Documents/Projects_2026/HIV-UChicago/"
-           "INFORM-HIV-Funding-Scenario-Exploration/04_cost_mapping/output/"
-           "response_surface_grid_full.csv")
-FOREST_CSV = Path("/Users/r_vardavas/Documents/Projects_2026/HIV-UChicago/"
-                  "INFORM-HIV-Funding-Scenario-Exploration/04_cost_mapping/output/"
-                  "forest_incidence_risk_ratio_funding.csv")
-RAF_TEMP = HERE.parent
-R_VALUES = Path("/tmp/accept_r_values.csv")
+HERE = Path(__file__).resolve().parents[1]
+CSV = HERE / "output" / "response_surface_grid_full.csv"
+FOREST_CSV = HERE.parent / "04_cost_mapping" / "output" / "forest_incidence_risk_ratio_funding.csv"
+RAF_TEMP = HERE / "script"
+R_VALUES = HERE / "build" / "accept_r_values.csv"
 TIME_SUMMARY = "horizon_mean"
 PANEL_A = "A. Intervention use reduction"
 PANEL_B = "B. Government funding reduction"
@@ -43,7 +39,7 @@ def check(name, ok, detail):
 
 
 d = pd.read_csv(CSV)
-sub = d[d.time_summary == TIME_SUMMARY]
+sub = d[(d.time_summary == TIME_SUMMARY) & (d["case"] == "committed")]
 art_nodes = np.sort(sub.art_red.unique())
 prep_nodes = np.sort(sub.prep_red.unique())
 
@@ -140,7 +136,7 @@ print("=" * 78)
 names = ["fig_response_surface_intervention.png", "fig_response_surface_funding.png",
          "fig_response_surfaces_comparison.png"]
 for n in names:
-    p = HERE / n
+    p = HERE / "output" / n
     if p.exists():
         w, h = Image.open(p).size
         fresh = p.stat().st_mtime >= CSV.stat().st_mtime
@@ -151,7 +147,7 @@ for n in names:
         ok, detail = False, "MISSING"
     check(f"delivery folder holds {n}", ok, detail)
 stray = [p.name for p in RAF_TEMP.glob("fig_response_surface*.png")]
-check("no stray surface PNG left in RAF_temp/", not stray,
+check("no stray surface PNG in script/", not stray,
       f"found {stray}" if stray else "clean")
 
 docs = (HERE / "README.md").read_text() + (HERE / "DATA_PIPELINE.md").read_text()
