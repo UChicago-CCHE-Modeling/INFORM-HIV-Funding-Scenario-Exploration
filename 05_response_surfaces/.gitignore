@@ -8,3 +8,8 @@ output/pdf/
 *.synctex.gz
 TSWLatexianTemp_*
 __pycache__/
+local/
+# Respondent-level data must live OUTSIDE the repository. Belt and braces:
+respondent*.csv
+respondent_*.pdf
+*_private*/

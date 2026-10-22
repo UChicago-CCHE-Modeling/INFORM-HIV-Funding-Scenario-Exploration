@@ -151,3 +151,95 @@ table_out <- create_funding_scenario_table(
 write.csv(as.data.frame(table_out),
           paste0(plots_folder_name, "funding_scenarios_table.csv"),
           row.names = FALSE)
+
+# ---------------------------------------------------------------------------
+# Output 4 — Full response surface grid (Panel A & B) for plotting
+# ---------------------------------------------------------------------------
+# Export the complete 101x101 grid for both panels so response-surface plots
+# can use actual surrogate predictions instead of interpolation.
+# Panel A: direct coverage reduction (r = Δ)
+# Panel B: funding reduction mapped to coverage (r = Δ × coverage-per-funding)
+
+.compute_grid_irr_surface <- function(grid, p, gp_incidence_fit, predict_composite_fn,
+                                      art_cov_factor, prep_cov_factor, panel_name,
+                                      n_samples_per_checkpoint, ci_probs) {
+  set.seed(0)  # Match forest plot seed for common random numbers
+
+  newX_grid <- grid$newX_grid
+  predict_incidence <- grid$predict_incidence
+  tick <- p$horizon_tick
+
+  # Convert from log-space [-0.75, 0] to proportional reduction [0, 0.4]
+  # (negative log funding reduction = positive proportional reduction)
+  delta_grid <- -newX_grid
+
+  # Get baseline incidence (at 0,0)
+  baseline_idx <- which(delta_grid[, 1] == 0 & delta_grid[, 2] == 0)
+  baseline_samples <- predict_incidence[tick, baseline_idx, ]
+
+  # Compute IRR for each grid point (sample-matched)
+  n_points <- nrow(delta_grid)
+  n_samples <- dim(predict_incidence)[3]
+  irr_matrix <- matrix(NA, nrow = n_points, ncol = n_samples)
+
+  for (i in 1:n_points) {
+    scenario_samples <- predict_incidence[tick, i, ]
+    irr_matrix[i, ] <- scenario_samples / baseline_samples
+  }
+
+  # Compute IRR mean and credible intervals
+  irr_mean <- apply(irr_matrix, 1, mean)
+  irr_lower <- apply(irr_matrix, 1, quantile, probs = ci_probs[1])
+  irr_upper <- apply(irr_matrix, 1, quantile, probs = ci_probs[2])
+
+  # Map funding reduction to coverage reduction for the output
+  art_red_out <- delta_grid[, 1]
+  prep_red_out <- delta_grid[, 2]
+
+  # Apply coverage-per-funding factor to get the actual coverage reduction
+  # (for Panel B, this is the mapped coverage; for Panel A, factors are 1)
+  art_cov <- art_red_out * art_cov_factor
+  prep_cov <- prep_red_out * prep_cov_factor
+
+  # Create output data frame
+  df_out <- data.frame(
+    art_red = art_red_out,
+    prep_red = prep_red_out,
+    art_cov = art_cov,
+    prep_cov = prep_cov,
+    mean = irr_mean,
+    lower = irr_lower,
+    upper = irr_upper,
+    panel = panel_name
+  )
+
+  df_out
+}
+
+# Panel A: direct coverage reduction (factors = 1)
+grid_surface_a <- .compute_grid_irr_surface(
+  grid, p, gp_incidence_fit, predict_hiv_composite_surrogate,
+  art_cov_factor = 1.0, prep_cov_factor = 1.0,
+  panel_name = "A. Intervention use reduction",
+  n_samples_per_checkpoint = p$n_samples_per_checkpoint,
+  ci_probs = p$ci_probs)
+
+# Panel B: funding reduction mapped to coverage via cost model
+grid_surface_b <- .compute_grid_irr_surface(
+  grid, p, gp_incidence_fit, predict_hiv_composite_surrogate,
+  art_cov_factor = art_cov_per_funding, prep_cov_factor = prep_cov_per_funding,
+  panel_name = "B. Government funding reduction",
+  n_samples_per_checkpoint = p$n_samples_per_checkpoint,
+  ci_probs = p$ci_probs)
+
+# Combine and save
+grid_surface <- rbind(grid_surface_a, grid_surface_b)
+write.csv(grid_surface,
+          paste0(plots_folder_name, "response_surface_grid_full.csv"),
+          row.names = FALSE)
+
+cat(sprintf("\n✓ Full response surface grid saved: response_surface_grid_full.csv\n"))
+cat(sprintf("  Panel A: %d points, IRR range %.4f–%.4f\n",
+            nrow(grid_surface_a), min(grid_surface_a$mean), max(grid_surface_a$mean)))
+cat(sprintf("  Panel B: %d points, IRR range %.4f–%.4f\n",
+            nrow(grid_surface_b), min(grid_surface_b$mean), max(grid_surface_b$mean)))

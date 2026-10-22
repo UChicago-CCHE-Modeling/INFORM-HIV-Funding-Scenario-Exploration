@@ -1,0 +1,13 @@
+{
+  "input_csv": "respondents_synthetic.csv",
+  "id_column": "syn_id",
+  "columns": {
+    "q_prep": "syn_prep_reduction_pct",
+    "gamma_prep": "syn_prep_other_access_pct",
+    "q_art": "syn_art_adherence_reduction_pct",
+    "gamma_art": "syn_art_other_access_pct"
+  },
+  "units": "percent",
+  "sep": ",",
+  "data_status": "synthetic"
+}
