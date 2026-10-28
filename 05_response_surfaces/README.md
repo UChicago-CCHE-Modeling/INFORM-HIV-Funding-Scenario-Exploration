@@ -33,7 +33,7 @@ which runs, in order: `survey_prepare.py` (respondent r, points to query) -> `ex
 - `proportional_funding_reductions_response_surfaces.tex` (respondent-level) and `..._summary.tex` (summary statistics): the reports (numbers via macros from the private folder).
 - `script/`: pipeline and checks. `respondent_tools/`: shared core, validation utility, synthetic-data generator, tests.
 - `output/coverage_domain_grid.csv`: surrogate-only IRR grid over r in [0, 0.75]^2.
-- `UPDATE_PLAN.md`: decisions and open items. `DATA_PIPELINE.md`: data flow. `email_draft.md`: draft note to the team (not sent).
+- `UPDATE_PLAN.md`: decisions and open items. `DATA_PIPELINE.md`: data flow.
 
 **Paper layout (Anna, 20 Oct 2026).** Main text: Tables 1-3 and Figure 1 (`fig1_main.png`). Supplement: Table S1 and Figures S1-S3 (`figS1_funding_space`, `figS2_slices`, `figS3_year5`). The r = q reading is not in any table or figure (explained in the text only); scenarios are called PrEP component, ART component and both. `figD_*` (Figure 1 with the what-if rectangles, 3-panel funding space, box plots) are for discussion and are not for the paper. Medians vs means: see the footnote in the report; the summary file also has mean r_i.
 
