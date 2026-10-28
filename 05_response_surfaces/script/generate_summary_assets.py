@@ -59,20 +59,25 @@ def levels(zmax, step=0.2, start=1.1):
 
 
 # ---------------------------------------------------------------- paper figures (follow the mock-ups)
-def paper_rspace(when, fname, title, notes, step, start, two_line_label):
+def paper_rspace(when, fname, title, notes, step, start, two_line_label, clean=False, outdir=None):
     s = SURF[when]; zmax = float(np.nanmax(s.mean_grid)); mp, mv = RP["med"], RV["med"]
     irr = summ("main", when).loc["P3", "mean"]
-    fig = plt.figure(figsize=(10, 7.6))
-    ax = fig.add_axes([0.095, 0.30, 0.76, 0.63]); cax = fig.add_axes([0.875, 0.30, 0.022, 0.63])
+    fig = plt.figure(figsize=(10, 6.2 if clean else 7.6))
+    ax, cax = ((fig.add_axes([0.095, 0.12, 0.76, 0.84]), fig.add_axes([0.875, 0.12, 0.022, 0.84])) if clean else
+               (fig.add_axes([0.095, 0.30, 0.76, 0.63]), fig.add_axes([0.875, 0.30, 0.022, 0.63])))
     m = ax.pcolormesh(s.r_prep_axis, s.r_vs_axis, s.mean_grid, cmap="YlOrRd", vmin=1.0, shading="gouraud")
     cs = ax.contour(s.r_prep_axis, s.r_vs_axis, s.mean_grid, levels=levels(zmax, step, start), colors="#444444", linewidths=0.6)
     ax.clabel(cs, fmt="%.1f", fontsize=8)
-    ax.errorbar(mp, mv, xerr=[[mp - RP["low"]], [RP["high"] - mp]], yerr=[[mv - RV["low"]], [RV["high"] - mv]], fmt="o", ms=11,
-                color=TEAL, mfc=TEAL, mec="white", mew=2, capsize=5, elinewidth=2.2, capthick=2.2, zorder=8)
-    ax.plot(0, mv, "^", ms=10, mfc="none", mec=TEAL, mew=2, clip_on=False, zorder=8)
-    ax.plot(mp, 0, "^", ms=10, mfc="none", mec=TEAL, mew=2, clip_on=False, zorder=8)
-    ax.text(0.015, mv + 0.022, "ART component", color=TEAL, fontsize=9.5, zorder=9)
-    ax.text(mp + 0.015, 0.02, "PrEP component", color=TEAL, fontsize=9.5, zorder=9)
+    if clean:   # Anna, 28 Oct 2026: one outline rectangle around the marginal min-max bounds, median dot, no triangles
+        ax.add_patch(Rectangle((RP["low"], RV["low"]), RP["high"] - RP["low"], RV["high"] - RV["low"], fill=False, ec=TEAL, lw=2.4, zorder=7))
+        ax.plot(mp, mv, "o", ms=11, mfc=TEAL, mec="white", mew=2, zorder=8)
+    else:
+        ax.errorbar(mp, mv, xerr=[[mp - RP["low"]], [RP["high"] - mp]], yerr=[[mv - RV["low"]], [RV["high"] - mv]], fmt="o", ms=11,
+                    color=TEAL, mfc=TEAL, mec="white", mew=2, capsize=5, elinewidth=2.2, capthick=2.2, zorder=8)
+        ax.plot(0, mv, "^", ms=10, mfc="none", mec=TEAL, mew=2, clip_on=False, zorder=8)
+        ax.plot(mp, 0, "^", ms=10, mfc="none", mec=TEAL, mew=2, clip_on=False, zorder=8)
+        ax.text(0.015, mv + 0.022, "ART component", color=TEAL, fontsize=9.5, zorder=9)
+        ax.text(mp + 0.015, 0.02, "PrEP component", color=TEAL, fontsize=9.5, zorder=9)
     lab = ("both components\n$r=q(1-\\gamma)$  \u2014  IRR " if two_line_label else "both components  \u2014  IRR ") + f"{irr:.2f}"
     ax.annotate(lab, (mp, mv), xytext=(mp + 0.05, mv + 0.09), fontsize=11, color=TEAL, fontweight="bold", zorder=9,
                 bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85), arrowprops=dict(arrowstyle="-", color=TEAL))
@@ -80,16 +85,18 @@ def paper_rspace(when, fname, title, notes, step, start, two_line_label):
     ax.set_xlabel("Proportional reduction in PrEP use  ($r_{PrEP}$)")
     ax.set_ylabel("Proportional reduction in viral suppression  ($r_{VS}$; ART adherence as proxy)")
     cb = fig.colorbar(m, cax=cax); cb.set_label(f"Incidence rate ratio vs. status quo, {'final year' if when == 'final' else 'year 5'}")
-    fig.text(0.095, 0.958, title, fontsize=14, fontweight="bold")
-    fig.text(0.095, 0.205, "\n".join(notes), fontsize=9.5, color=NOTE, va="top", linespacing=1.55)
-    fig.savefig(OUT / fname); plt.close(fig)
+    if not clean:
+        fig.text(0.095, 0.958, title, fontsize=14, fontweight="bold")
+        fig.text(0.095, 0.205, "\n".join(notes), fontsize=9.5, color=NOTE, va="top", linespacing=1.55)
+    fig.savefig((outdir or OUT) / fname); plt.close(fig)
 
 
-def fig_s1(fname):
+def fig_s1(fname, clean=False, outdir=None):
     gp, ga = CASES[MED]; x, y, z = SURF["final"].on_delta_grid(gp, ga); zmax = float(np.nanmax(z))
     pol = summ("policy", "final", MED)
-    fig = plt.figure(figsize=(10, 8.0))
-    ax = fig.add_axes([0.105, 0.37, 0.75, 0.56]); cax = fig.add_axes([0.875, 0.37, 0.022, 0.56])
+    fig = plt.figure(figsize=(10, 6.2 if clean else 8.0))
+    ax, cax = ((fig.add_axes([0.105, 0.13, 0.75, 0.83]), fig.add_axes([0.875, 0.13, 0.022, 0.83])) if clean else
+               (fig.add_axes([0.105, 0.37, 0.75, 0.56]), fig.add_axes([0.875, 0.37, 0.022, 0.56])))
     m = ax.pcolormesh(x, y, z, cmap="YlOrRd", vmin=1.0, shading="gouraud")
     cs = ax.contour(x, y, z, levels=levels(zmax, 0.2, 1.1), colors="#444444", linewidths=0.6); ax.clabel(cs, fmt="%.1f", fontsize=8)
     for k, (dp, dm) in POL.items():
@@ -99,6 +106,8 @@ def fig_s1(fname):
     ax.set_xlabel("Hypothetical reduction in prevention funding reaching Chicago  ($\\Delta_{prevention}$)")
     ax.set_ylabel("Hypothetical loss of Medicaid coverage among\npeople in HIV care  ($\\Delta_{Medicaid}$)")
     fig.colorbar(m, cax=cax).set_label("Incidence rate ratio vs. status quo, final year")
+    if clean:
+        fig.savefig((outdir or OUT) / fname); plt.close(fig); return
     fig.text(0.105, 0.965, "Figure S1.  Hypothetical funding space, at the median other-access shares", fontsize=14, fontweight="bold")
     qp, qa = ST["q_prep"]["med"], ST["q_art"]["med"]
     txt = (f"The survey did not ask about funding reductions, so this view is a what-if. Coverage reductions are derived as $r=\\Delta(1-\\gamma)$ using the\n"
@@ -113,12 +122,12 @@ def fig_s1(fname):
     fig.savefig(OUT / fname); plt.close(fig)
 
 
-def fig_s2(fname):
+def fig_s2(fname, clean=False, outdir=None):
     st = [(0.0, "$\\Delta_{Medicaid}$ = 0", "#4a90b8", "-", 2.6), (0.536, "$\\Delta_{Medicaid}$ = 0.536  (S2 level)", "#d17a33", "-", 2.6),
           (1.0, "$\\Delta_{Medicaid}$ = 1.00", "#6a3d8f", "--", 2.6)]
     xs = np.linspace(0, 1, 101)
     fig, axes = plt.subplots(1, 3, figsize=(15, 5.7), sharey=True)
-    fig.subplots_adjust(left=0.065, right=0.985, top=0.80, bottom=0.34, wspace=0.07)
+    fig.subplots_adjust(left=0.065, right=0.985, top=0.86 if clean else 0.80, bottom=0.14 if clean else 0.34, wspace=0.07)
     for ax, (c, (gp, ga)) in zip(axes, CASES.items()):
         for dm, lab, col, ls, lw in st:
             rp_, rv_ = xs * (1 - gp), np.full_like(xs, dm * (1 - ga))
@@ -135,6 +144,8 @@ def fig_s2(fname):
         ax.set_xlabel("Hypothetical prevention funding loss  ($\\Delta_{prevention}$)")
         ax.set_title(f"{LABEL[c]}\n$\\gamma_{{PrEP}}$ = {gp:.2f},  $\\gamma_{{ART}}$ = {ga:.2f}", loc="left", fontweight="bold")
     axes[0].set_ylabel("Incidence rate ratio, final year"); axes[0].legend(loc="upper left", fontsize=8.5)
+    if clean:
+        fig.savefig((outdir or OUT) / fname); plt.close(fig); return
     fig.text(0.065, 0.955, "Figure S2.  Incidence rate ratio against hypothetical prevention funding loss, at fixed hypothetical Medicaid coverage loss",
              fontsize=14, fontweight="bold")
     fig.text(0.065, 0.19, "A what-if view: the survey did not ask about funding reductions. Coverage reductions are derived as $r=\\Delta(1-\\gamma)$, so these curves depend on the assumed other-access shares, unlike Figure 1.\n"
@@ -348,6 +359,11 @@ paper_rspace("year5", "figS3_year5.png", "Figure S3.  Incidence rate ratio over 
               "the coverage reductions do not change with the horizon, only the incidence rate ratio they produce.",
               "Comparing the two shows how the effect accumulates over the intervention period."], 0.2, 1.2, False)
 fig_s1("figS1_funding_space.png"); fig_s2("figS2_slices.png")
+OV = OUT / "overleaf_figures"; OV.mkdir(exist_ok=True)   # titles/footnotes removed, descriptive names (Anna, 28 Oct 2026)
+paper_rspace("final", "IRR_over_coverage_reduction_domain_yr10.png", "", [], 0.3, 1.2, True, clean=True, outdir=OV)
+paper_rspace("year5", "IRR_over_coverage_reduction_domain_yr5.png", "", [], 0.2, 1.2, False, clean=True, outdir=OV)
+fig_s1("funding_space_at_median_other_access.png", clean=True, outdir=OV)
+fig_s2("IRR_vs_prevention_funding_loss_by_Medicaid_loss.png", clean=True, outdir=OV)
 rect_fig("figD_rect_final.png"); delta_fig("figD_delta_panels.png"); box_points("figD_box_points.png"); box_policies("figD_box_policies.png")
 M = write_tables_and_macros()
 print("summary-mode assets written to", OUT)

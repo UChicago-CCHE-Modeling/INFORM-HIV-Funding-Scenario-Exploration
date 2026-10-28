@@ -1,16 +1,19 @@
-Subject: Revised analysis using your respondent-level r summaries
+Subject: Figures 1, S1, S2, S3 for Overleaf (no titles or footnotes)
 
 Hi Anna,
 
-Thank you for the summary file (pre_mtg_survey_summary_gtz_20261019). I replaced the numbers built from multiplying medians with your respondent-level effective reductions: the median of r_i is now the central point (PrEP and ART channels), and the surrogate is queried directly at P1 (ART only), P2 (PrEP only) and P3 (both). I used only the median, minimum and maximum from the file. The review PDF is attached.
+Attached are the four figures, regenerated as you asked and named so we can tell them apart:
 
-Two caveats are stated in the report. First, because only the marginal summaries of r_i are available, the pairing of PrEP and ART values by respondent is unknown, so the lower and upper points combine the marginal minima and maxima; they are drawn as bars, not a joint range, and no single respondent need have reported them. Second, the survey wording is open to interpretation, so the PDF also shows r = q as a sensitivity. q is described as a gross disruption, not an observed funding reduction, and the funding-space panels are hypothetical what-ifs. ART adherence remains a provisional proxy for viral suppression.
+- IRR_over_coverage_reduction_domain_yr10.png (Figure 1)
+- IRR_over_coverage_reduction_domain_yr5.png (Figure S3)
+- funding_space_at_median_other_access.png (Figure S1)
+- IRR_vs_prevention_funding_loss_by_Medicaid_loss.png (Figure S2)
 
-**No individual-level respondent data have been opened, committed to Git, or processed through Claude, Codex, or any other AI system.**
+None of them has a title or any footnote text, so the captions can be written directly in Overleaf. In Figure 1 and Figure S3 I removed the triangles and replaced the bars with one rectangle around the bounds of the survey responses, with the median dot inside it. Everything else in those two figures is unchanged. Figures S1 and S2 are unchanged apart from the removed titles and footnotes.
 
-If you and AFC approve, I can next finalize a local Python or R workflow that reads the respondent CSV directly on my computer and generates one short PDF per respondent. I would first test the workflow using synthetic records. The real file and all derived outputs would remain in a private local folder: they would not be committed to Git, uploaded to an AI system, or sent anywhere by the script. AFC could then relay each PDF to the corresponding respondent and ask whether their stated reduction already accounted for access by other means. I have not run this workflow on the real respondent file.
+Two things to keep in mind for the captions. The rectangle's corners combine the minimum and maximum of each channel separately (PrEP 2.2-61.9%, ART 0.8-34.0%), so no single respondent need have reported a corner, and the median dot is not at its centre. It would help to describe it as the range of the survey responses and not as a joint range. Also, S1 and S2 are what-if views that depend on the assumed other-access shares, unlike Figure 1.
 
-For this review, I would especially appreciate confirmation that the revised interpretation is what you intended and whether you would like me to proceed with the local respondent-level validation. It would also be helpful to confirm the source and intended interpretation of the illustrative Medicaid-loss value used in the supplementary policy panels.
+Let me know if you'd like any other changes, or if there is anything I can do to help with the writing.
 
-Best,
+Thanks,
 Raff
