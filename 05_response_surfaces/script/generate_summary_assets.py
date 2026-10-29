@@ -78,9 +78,9 @@ def paper_rspace(when, fname, title, notes, step, start, two_line_label, clean=F
         ax.plot(mp, 0, "^", ms=10, mfc="none", mec=TEAL, mew=2, clip_on=False, zorder=8)
         ax.text(0.015, mv + 0.022, "ART component", color=TEAL, fontsize=9.5, zorder=9)
         ax.text(mp + 0.015, 0.02, "PrEP component", color=TEAL, fontsize=9.5, zorder=9)
-    lab = ("both components\n$r=q(1-\\gamma)$  \u2014  IRR " if two_line_label else "both components  \u2014  IRR ") + f"{irr:.2f}"
-    ax.annotate(lab, (mp, mv), xytext=(mp + 0.05, mv + 0.09), fontsize=11, color=TEAL, fontweight="bold", zorder=9,
-                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85), arrowprops=dict(arrowstyle="-", color=TEAL))
+    lab = f"median $r_{{PrEP}}$, $r_{{VS}}$\nIRR {irr:.2f}"
+    ax.annotate(lab, (mp, mv), xytext=(mp + 0.13, 0.02), fontsize=11, color=TEAL, fontweight="bold", zorder=9,
+                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.35), arrowprops=dict(arrowstyle="-", color=TEAL))
     ax.set_xlim(0, core.R_MAX); ax.set_ylim(0, core.R_MAX)
     ax.set_xlabel("Proportional reduction in PrEP use  ($r_{PrEP}$)")
     ax.set_ylabel("Proportional reduction in viral suppression  ($r_{VS}$; ART adherence as proxy)")
