@@ -6,6 +6,8 @@ cd "$(dirname "$0")/../.."
 python3 05_response_surfaces/script/survey_prepare_summary.py
 INFORM_OUT_SUBDIR=out_summary /usr/local/bin/Rscript 05_response_surfaces/script/export_survey_points.R
 python3 05_response_surfaces/script/generate_summary_assets.py
+/usr/local/bin/Rscript 05_response_surfaces/script/export_incidence_trajectories.R
+python3 05_response_surfaces/script/generate_incidence_assets.py
 python3 05_response_surfaces/script/acceptance_checks_summary.py
 export PATH="$PATH:/Library/TeX/texbin"
 O="$INFORM_PRIVATE_DIR/out_summary"; mkdir -p "$O/build" "$O/pdf"
