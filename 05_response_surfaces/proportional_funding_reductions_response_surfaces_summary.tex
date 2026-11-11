@@ -1,0 +1,149 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,graphicx,booktabs,geometry,caption,float,array,enumitem,xspace,xcolor,needspace}
+\usepackage[hidelinks]{hyperref}
+\geometry{margin=0.8in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\captionsetup{font=small,labelfont=bf,hypcap=false}
+% Survey-derived numbers, tables and figures live OUTSIDE Git and are found through TEXINPUTS (see README.md).
+% This file contains no survey data.
+\input{values.tex}
+\title{Proportional Funding Reductions and HIV Incidence:\\Response Surfaces from Summaries of Respondent-Level Effective Reductions\\(Review Version; No Respondent-Level Data Used)}
+\author{INFORM-HIV Funding Scenario Exploration}
+\date{October 2026}
+\begin{document}
+\maketitle
+\DataBanner
+
+\section{Approach and what changed}
+This version recomputes the analysis from the survey summary shared by Anna on 19 October 2026. Anna computed the effective reduction $r_i$ for each individual observation, for PrEP and for ART, and summarized its distribution across the five respondents. Only the median, minimum and maximum of each summary are used here; the individual observations were not seen. The layout follows the paper plan in Anna's email: Tables 1--3 and Figure 1 for the main text; Table S1 and Figures S1--S3 for the supplement; and a last appendix with material for discussion that is \emph{not} intended for the paper.
+\begin{itemize}[nosep]
+\item The stated reduction in PrEP use or ART adherence, $q_i$, is read as a \textbf{gross disruption before alternative access}, and the effective reduction is $r_i=q_i(1-\gamma_i)$, where $\gamma_i$ is the proportion able to keep access by other means. The reasons for this reading are in Section~\ref{sec:interp}.
+\item \textbf{Central estimate.} The scenario \emph{both} uses the median of the respondent-level $r_i$ for PrEP and for ART (componentwise); no product of marginal medians is formed. The \emph{PrEP component} and \emph{ART component} scenarios reduce one channel only.
+\item \textbf{Range.} Only the marginal minimum and maximum of each $r_i$ summary are available, so the individual pairs $(r_{PrEP,i},r_{VS,i})$ are not known. The lower and upper both-channel points combine the two marginal minima and the two marginal maxima; no single respondent need have reported them. The figures draw them as bars, never as a filled joint range.
+\end{itemize}
+\textbf{Terminology.} Under the linear mapping $\Delta=r/(1-\gamma)$ each respondent's implied $\Delta_i$ equals $q_i$ algebraically. The survey did not ask about funding cuts, so $q$ is called a \emph{gross disruption}, not an observed funding reduction. Funding-space figures are hypothetical what-ifs unless AFC supplies actual funding-loss estimates.
+
+\textbf{Limitations kept.} ART adherence is a proxy for viral suppression; the relationship is not one to one. Five respondents give no basis for population-level inference, and the intervals describe model uncertainty only.
+
+\textbf{Data handling.} The survey summary and everything derived from it (figures, tables, per-draw results, and this document's numbers) are kept in a folder outside the Git repository and are not stored in it. \textbf{No individual-level respondent data were opened, committed to Git, or processed by Claude, Codex, or any other AI system.}
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{@{}c>{\raggedright\arraybackslash}p{6.4cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{4.4cm}@{}}\toprule
+Item & Survey question (Black sexual minority men; next 10 years) & Symbol here & Use in this report\\\midrule
+1 & How much reduction in PrEP use will there be compared to current rates of PrEP use? (0--100\%) & $q_{PrEP}$ & Gross disruption before alternative access\\
+2 & How much reduction in ART adherence will there be compared to current rates of ART use? (0--100\%) & $q_{ART}$ (proxy) & Same; adherence stands in for viral suppression\\
+3 & If funding goes down, what proportion of those who currently take PrEP will be able to access PrEP by other means? (0--100\%) & $\gamma_{PrEP}$ & Proportion retaining access\\
+4 & If funding goes down, what proportion of those with HIV currently on ART will be able to access ART by other means? (0--100\%) & $\gamma_{ART}$ & Same, ART\\\bottomrule
+\end{tabular}
+\caption{The four elicitation questions and how each enters the analysis. The questions did not specify a funding scenario.}\label{tab:survey}
+\end{table}
+
+\section{Definitions}
+Let $r_{PrEP}$ be the proportional reduction in PrEP use and $r_{VS}$ the proportional reduction in viral suppression (the ART channel). The surrogate model gives the incidence rate ratio (IRR) relative to the modeled status quo as a function of $(r_{PrEP},r_{VS})$ over $[0,0.75]^2$; no insulation assumption enters the IRR at a given $r$.
+
+\textbf{Scenarios.} \emph{PrEP component}: median effective PrEP reduction only; \emph{ART component}: median effective ART reduction only; \emph{both}: the two together. The surrogate is queried directly at these points. Two further both-channel points (marginal minima and marginal maxima) show how wide the marginal range is.
+
+\textbf{Outcome.} Main results are the IRR in the \textbf{final year} (post-intervention year 10); year 5 appears in the supplement. Intervals are 95\% model-uncertainty intervals over 100 calibration checkpoints $\times$ 50 surrogate draws, with common random numbers. They do not include uncertainty in the survey responses.
+
+\section{Why we use $r=q(1-\gamma)$}\label{sec:interp}
+The survey wording is ambiguous about whether the answer to items 1--2 already allowed for alternative access. We treat it as a gross disruption, so that the effective reduction is $r=q(1-\gamma)$, for three reasons.
+\begin{enumerate}[nosep]
+\item Items 3--4 ask separately what proportion could keep access by other means if funding goes down. If items 1--2 were already net of that access, items 3--4 would add nothing to the analysis; read as a gross disruption, each of the four answers has a role.
+\item The net reading is internally inconsistent in the summary data. If $q$ were already net of alternative access, every respondent would need $q_i\le 1-\gamma_i$. The medians violate this in both channels: for ART, the median $q$ is \QvMed\ while $1-\gamma_{med}$ is \OneMinusGaMed; for PrEP the median $q$ is \QpMed\ while $1-\gamma_{med}$ is \OneMinusGpMed. The gross reading carries no such constraint.
+\item The gross reading gives smaller effective reductions, and so the smaller of the two effects. We therefore do not overstate the consequences of funding cuts.
+\end{enumerate}
+The reading has not yet been confirmed by the respondents. If AFC finds that the stated reductions already included alternative access, the effective reductions would be larger and the IRRs substantially higher; that alternative is not shown in any table or figure here.
+
+\section{Why the median $r$ is not the product of the median $q$ and $1-\gamma$}\label{sec:medians}
+Table~\ref{tab:stats} may look inconsistent at first sight: for PrEP the median $q$ is \QpMed\ and the median $\gamma$ is \GpMed, so the product $q_{med}(1-\gamma_{med})$ is \ProdMedP, but the median effective reduction is \RpMed. For ART, $q_{med}(1-\gamma_{med})=\ProdMedA$ against a median $r$ of \RvMed. There is no error. The effective reduction is computed \emph{respondent by respondent}, $r_i=q_i(1-\gamma_i)$, and the median is taken over those five products. The median of the products need not equal the product of the medians, because the respondent who is in the middle for $q$ is not the respondent who is in the middle for $\gamma$ or for $r$. An earlier version of this report multiplied the marginal medians; that calculation is replaced by the respondent-level $r_i$ supplied by Anna.\footnote{\textbf{Medians and means.} The summary file also contains the mean of $r_i$ (PrEP \MeanRp, ART \MeanRa), so the analysis can be switched from medians to means without new inputs. Means reduce the discrepancy but do not remove it: the mean of products equals the product of means only if $q_i$ and $1-\gamma_i$ are uncorrelated across respondents. For PrEP the product of the mean $q$ (\MeanQp) and the mean $1-\gamma$ is \ProdMeanP\ against a mean $r$ of \MeanRp; for ART, \ProdMeanA\ against \MeanRa. At the mean $r_i$ the final-year IRR is \IrrMeanPrep\ for the PrEP component, \IrrMeanArt\ for the ART component and \IrrMeanBoth\ for both (medians: \IrrPrep, \IrrArt, \IrrBoth).}
+
+\input{tab_stats.tex}
+
+\section{Results}
+\input{tab_points.tex}
+At the median respondent-level effective reductions (\RpMed\ for PrEP and \RvMed\ for ART), the final-year IRR for \emph{both} is \IrrBoth\ (\IrrBothLo--\IrrBothHi), i.e.\ about \IrrBothPct\% more incidence than the status quo at year 10 (Figure~1). The PrEP component alone gives \IrrPrep\ (\IrrPrepLo--\IrrPrepHi) and the ART component alone gives \IrrArt\ (\IrrArtLo--\IrrArtHi). The excess IRRs of the two components sum to \ExcSum, versus \ExcBoth\ for both together, so the combination is \AddPhrase.
+
+The marginal range is wide: combining the marginal minima gives an IRR of \IrrLow\ and the marginal maxima give \IrrHigh. That width reflects five respondents with widely differing answers and the fact that the bounds combine extremes that no single respondent need have reported; it is not an uncertainty interval for the population.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig1_main.png}
+\end{figure}
+
+\clearpage
+\appendix
+\renewcommand{\thetable}{S\arabic{table}}\setcounter{table}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}\setcounter{figure}{0}
+\section{Supplementary information (for the paper)}
+\subsection{Hypothetical funding-space view}
+The survey did not ask about funding cuts, so this view is a what-if: it shows the funding or coverage loss $\Delta=r/(1-\gamma)$ that would be needed to produce a given effective reduction at an \emph{assumed} other-access share. The shares are the median $\gamma$ and relative $\pm25\%$ around it. Named policies S1 (prevention funding halved; illustrative), S2 (Medicaid coverage loss of $0.536$, AFC's published estimate) and S3 (both) are stipulated on these axes; they are not survey quantities and their IRR depends on the assumed other-access share.
+\input{tab_policy.tex}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figS1_funding_space.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figS2_slices.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figS3_year5.png}
+\end{figure}
+
+\clearpage
+\renewcommand{\thetable}{D\arabic{table}}\setcounter{table}{0}
+\renewcommand{\thefigure}{D\arabic{figure}}\setcounter{figure}{0}
+\section{For discussion only --- not for the paper}
+Anna's email proposes dropping the following from the paper because the tables carry the same information. They are kept here so the team can see them; they can be deleted without affecting the main text or the supplement.
+
+\subsection{Variant of Figure 1 with the funding what-if rectangles}
+This variant adds, to Figure 1 in the paper layout, one rectangle for each assumed other-access share (lower, median, higher; Figure~D2 shows the same rectangles in funding space). Each rectangle is the range of \emph{stated} reductions $q$ (marginal minimum to maximum) re-expressed as $r=\Delta(1-\gamma)$ at that share, with a diamond at the median $q$. They show where that hypothetical funding what-if lands on the surface. They are not a joint respondent range and not part of the main results.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figD_rect_final.png}
+\caption{Figure 1 with the three what-if rectangles (final year).}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figD_delta_panels.png}
+\caption{Funding-space panels at three assumed other-access shares, with the stated-reduction rectangle (diamond at the median $q$). Squares: S1--S3. The open circle shows \emph{both} re-expressed at each share when attainable; a red triangle marks that it would need a loss above 100\%. It does not coincide with the median $q$ because the median of $r_i$ is not the product of medians.}
+\end{figure}
+\input{tab_implied.tex}
+
+\clearpage
+\subsection{Box plots of the model-uncertainty draws}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{figD_box_points.png}
+\caption{Final-year IRR draws for the PrEP component, the ART component and both, at the median effective reductions.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figD_box_policies.png}
+\caption{Final-year IRR draws at the hypothetical named policies, by assumed other-access share.}
+\end{figure}
+
+\subsection{How we arrived at this set of plots}
+\textbf{From dollars to proportions.} The first analysis expressed cuts in dollars, which needs assumptions about which funding streams reach the modeled population. The team moved to proportional reductions without dollar amounts or iso-dollar lines; a dollar translation can return in the interactive tool.
+
+\textbf{Final year.} The paper reports the final year. In rebuilding the figures we found that the earlier ``tick 10'' is surrogate row 10 (the ninth intervention year); the final year is row 11 (post-intervention year 10; row 6 is year 5). Earlier horizon-mean and row-10 results should not be quoted as final-year values.
+
+\textbf{The survey inputs.} Early versions placed a stakeholder point and range on the funding axes; the team then recognized that the survey did not ask about funding cuts. An interim version rescaled $\gamma$ so that $r+\gamma=1$ at the medians; that arbitrary patch is withdrawn. An intermediate version applied $r=q(1-\gamma)$ to the marginal medians; it is replaced by Anna's summary of the respondent-level $r_i$.
+
+\textbf{Layout.} Percentage-point axes were dropped because PrEP use varies across the 100 calibration checkpoints, so no single baseline is appropriate. The coverage-reduction surface is the main figure and the funding-space view is supplementary (the target journal is Lancet HIV).
+
+\subsection{Still to be done or confirmed}
+\begin{itemize}
+\item \textbf{Respondent validation.} Anna cannot identify individual respondents, so per-respondent validation sheets are not possible. AFC could instead be asked, at the group level, whether the stated reductions already accounted for alternative access; that decides between $r=q(1-\gamma)$ and the larger-effect alternative.
+\item Ask AFC for actual funding-loss estimates so that funding-space results can be reported as more than what-ifs.
+\item Confirm that ART adherence may stand in for viral suppression.
+\item Decide whether to extend the surrogate beyond $r=0.75$, and whether mixed insulation combinations are needed.
+\item Decide whether to report medians (current) or means; see the footnote in Section~\ref{sec:medians}.
+\item Update the paper text to the final-year definition (row 11) and to this construction; final figures and tables to Overleaf.
+\item New simulation runs: hysteresis and recovery time after a period of reduced funding. App: user-selectable insulation, optional integration over $\gamma$, dollar translation.
+\end{itemize}
+\end{document}

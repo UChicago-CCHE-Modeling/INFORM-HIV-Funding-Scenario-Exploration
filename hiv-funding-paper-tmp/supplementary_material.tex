@@ -1,0 +1,1043 @@
+% This file can be compiled standalone OR included into paper.tex.
+% Standalone mode (default): typesets its own document.
+% Included mode: paper.tex sets \suppstandalone to 0 before \input{supplementary_material}.
+\providecommand{\suppstandalone}{1}
+
+\ifnum\suppstandalone=1\relax
+  \documentclass[preprint,12pt]{elsarticle}
+
+  %% The amssymb package provides various useful mathematical symbols
+  \usepackage{amssymb}
+  %% The amsmath package provides various useful equation environments.
+  \usepackage{amsmath}
+
+  %% for alignment in tables
+  \usepackage{booktabs}
+  \usepackage{multirow} % for the r-sensitivity appendix table
+
+  %% used in the appendix content
+  \usepackage{graphicx}
+  \usepackage{lscape}
+  \usepackage{pdflscape}
+  \usepackage{threeparttable}
+
+  % Clickable links in the standalone supplementary PDF
+  \usepackage[hidelinks]{hyperref}
+
+  % Supplementary-appendix-only mini ToC/LoF/LoT
+  \usepackage{titletoc}
+
+  % Allow scientific notation for small numbers in tables
+  \usepackage{siunitx}
+
+  % Only needed here in standalone mode -- when included via paper.tex, that
+  % file already \input's this before \input{supplementary_material}, and
+  % \newcommand would error on a redefinition.
+  \input{../04_cost_mapping/sensitivity/output/paper_macros.tex}
+
+  \begin{document}
+
+  \begin{frontmatter}
+  \title{Impact of reductions in HIV treatment and prevention funding on HIV transmission in Chicago: Supplementary Appendix}
+  \end{frontmatter}
+\fi
+% If included into the main paper (\suppstandalone=0), force the supplementary appendix
+% to start on a fresh page and add a visible title/marker.
+\ifnum\suppstandalone=0\relax
+  \clearpage
+  \section*{Supplementary Appendix}
+  \label{sec:supp-appendix}
+\fi
+
+% --- Supplementary-only contents/lists (requires 2 LaTeX runs) ---
+\startcontents[supp]
+\startlist[supp]{lof}
+\startlist[supp]{lot}
+
+% Better hanging indent/alignment for multi-line entries
+\contentsmargin{3.2em}
+\titlecontents{section}
+  [3.2em] % left margin
+  {}      % above code
+  {\contentslabel{3.2em}} % numbered entry format (label width)
+  {}      % numberless entry format
+  {\titlerule*[0.6pc]{.}\contentspage} % filler + page
+
+\titlecontents{subsection}
+  [6.0em]
+  {}
+  {\contentslabel{3.8em}}
+  {}
+  {\titlerule*[0.6pc]{.}\contentspage}
+
+\subsection*{Contents}
+\printcontents[supp]{l}{1}{\setcounter{tocdepth}{2}}
+
+\subsection*{List of Figures}
+\printlist[supp]{lof}{}
+
+\subsection*{List of Tables}
+\printlist[supp]{lot}{}
+
+\clearpage
+
+% --- Supplementary numbering (sections/figures/tables) ---
+% Sections: SA.1, SA.1.1, SA.1.1.1
+\setcounter{section}{0}
+\renewcommand{\thesection}{SA.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+% Figures/Tables: S1, S2, ... (refer as Fig.~\ref{...}, Table~\ref{...})
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+
+
+% Global configuration for scientific notation for the entire document
+% \sisetup{
+%   scientific-notation = true,
+%   round-mode = places,
+%   round-precision = 2
+% }
+
+The design, parameterization, and processes for the Integrated Framework for Modeling Social Determinants of HIV (INFORM-HIV) agent-based model have been previously published. [cite preprint] This Supplementary Appendix describes the calibration process, experimental design, and methods for mapping reductions in HIV program funding to reductions in ART and PrEP use. 
+
+% \section{Purpose}
+% \label{sec:supp-purpose}
+
+% The INFORM-HIV model was designed to simulate HIV transmission among Black men who have sex with men (MSM) in Chicago and to evaluate interventions to reduce HIV transmission. The model facilitates evaluation of the potential impact of combinations of biomedical and structural interventions for reducing HIV transmission under varying assumptions about the underlying causal structures and uncertainties in the model. We updated and re-calibrated a previous version of the model \cite{khanna_modeling_2019} to reflect new data, changes in the HIV epidemic over time, and additional parameters. Thus, while the overall model structure is similar to the previous version, some processes and underlying data sources may have changed from the previous model version.
+
+% \section{Introduction}
+% \label{sec:supp-introduction}
+
+%  INFORM-HIV is a stochastic, discrete-time, agent-based network model (ABNM) that represents Black MSM between the ages of 16 and 34 in the city of Chicago. This population was selected because they have historically been a key population of focus for interventions given the disproportionate impact of HIV on this community. The model was parameterized to represent the HIV epidemic in Chicago based on clinical and behavioral data collected between 2013 and 2023 and reflects local rates of HIV incidence and prevalence, care engagement, and pre-exposure prophylaxis (PrEP) use. The simulation proceeds in discrete daily time steps and HIV is transmitted through sexual contact with main and casual partners. Separable temporal exponential-family random graph models (STERGMs) are used to simulate main and casual sexual networks dynamically over time.
+
+% \section{Overview of Model Processes}
+% \label{sec:supp-overview-processes}
+
+% Agents enter the model at age 16 and leave the model either by aging out at age 35 or according to local age-specific mortality rates that can be modified by HIV disease progression. At the start of the simulation, agents are probabilistically assigned characteristics (e.g., age, sexual roles, housing status, employment status) that affect their behaviors, partnership dynamics, and probability of acquiring HIV. Age-stratified HIV prevalence rates were assigned at the beginning of the simulation such that the model prevalence matched local prevalence estimates for young Black MSM in Chicago at the end of 2023 based on surveillance data (approximately 29.4\%). \cite{idph_msm_plwhiv_chicago_2024}
+
+% Main and casual network connections are established at the start of the simulation and evolve over time to match the average relationship durations and degree distributions for main and casual sex partners based on local data. Partnered agents have sex at a specified frequency and use condoms for a proportion of those sex acts. HIV is transmitted through condomless anal sex between serodiscordant partners, and the probability of transmission can be modified by condom use, sexual roles, stage of infection and viral load of the HIV positive partner, and PrEP use by the HIV negative partner.
+
+% Rates of HIV testing, diagnosis, linkage to care, viral suppression, and PrEP use were assigned to reflect current characteristics of the local HIV epidemic in Chicago. A small proportion of agents are never tested and if they acquire HIV remain undiagnosed and untreated throughout the simulation. Otherwise, HIV negative agents are tested for HIV at specified intervals and, if they acquire HIV, are diagnosed and initiate ART after a specified time interval that reflects the average time from diagnosis to ART initiation in the population. Agents who have initiated ART have a probability of being virally suppressed, updated at 6-month intervals, which reflects adherence to medication and varies according to age, time since infection, and SDOH. Agents without HIV can take PrEP for a specified duration of time with a specified level of adherence.
+
+% HIV positive agents who never receive treatment proceed through acute, chronic, and late-stage infection with associated changes in viral load, which affects the probability of transmitting HIV, and CD4 counts, which impact  mortality. Progression to late-stage infection is indicated by a CD4 count <200 which occurs an average of 8 years after infection in the absence of treatment. Treatment with ART modifies this trajectory by extending the chronic stage (i.e., slowing disease progression) and reducing the probability of death. Sexual behaviors and engagement in HIV prevention and care (e.g., PrEP use, frequency of testing, time from diagnosis to antiretroviral therapy (ART) initiation, and viral suppression) can vary according to agent characteristics, including demographics and social determinants of health, depending on availability of data, as described below.
+
+% \section{Empirical Data Sources}
+% \label{sec:supp-empirical-data}
+
+% \subsection{uConnect study}
+% \label{sec:supp-uconnect}
+% Input parameter values for sexual behaviors, network characteristics, and demographics were derived from the uConnect study, a longitudinal study of 618 Black sexual minority men and transgender women conducted in Chicago between 2013 and 2015. \cite{schneider_at_2017, schneider_skaathun_2017, khanna_preexposure_2016} Participants were recruited using respondent driven sampling (RDS)\cite{heckathorn_respondent-driven_1997, magnani_review_2005} over 3 waves of data collection and followed for an average of 18 months after the baseline study visit. Retention was 85\% at 9 months and 82\% at 18 months. uConnect examined the impact of social influences on HIV transmission risk and use of biomedical and behavioral prevention among young Black MSM and TGW residing on the South Side of Chicago, an area of the city burdened by lack of resources and high HIV prevalence. Sampling, recruitment, and data collection have been previously described.\cite{schneider_skaathun_2017} Briefly, recruits (seeds) were selected from community organizations, health clinics, and virtual spaces such as Facebook. Eligibility criteria included self-identifying as African American or Black; residing or spending the majority of time on the South Side of Chicago; having been assigned male sex at birth; being between the ages of 16 and 29; reporting oral or anal sex with a male partner in the past 24 months; and being willing and able to provide informed consent. At each study visit, participants provided information on sociodemographics, substance use, sexual behaviors, HIV prevention and care engagement, and characteristics of their social and sexual networks. Analyses to generate the model parameters used relevant time points (baseline visit, average across visits, or changes over time) depending on the availability of specific variables and parameters of interest.
+
+% \subsection{Sexual network data}
+% \label{sec:supp-sexual-network-data}
+% uConnect participants provided information on the characteristics of up to 6 partners with whom they reported sex in the past 6 months, including age, race, sex, gender, HIV status, and sexual behaviors with each partner. These data were summarized to obtain characteristics of the sexual networks, including relationship durations and degree distributions. Because the model focused on young Black MSM, analyses of network data were restricted to sex partners who were identified as Black MSM between the ages of 16 and 34. 
+ 
+% \subsection{HIV surveillance data}
+% \label{sec:supp-hiv-surveillance}
+
+% HIV surveillance data from the Chicago Department of Public Health (CDPH) and Getting to Zero Illinois data dashboards was used to calibrate the model using data from 2021-2023.\citep{chicago_hiv_data_brief_2024, hiv_ybmsm_chicago_2021}. 
+
+% \section{Synthetic population creation}
+% \label{sec:supp-synth-pop}
+
+% \subsection{Agent population size}
+% \label{sec:supp-agent-pop-size}
+% % AH TO DO: check population size estimates and add refs for updated calculations.
+% The total number of Black MSM in Chicago was estimated based on the total number of non-Hispanic Black males aged 18-34 in Chicago according to 5-year estimates from the 2021 American Community Survey (ACS). Data were obtained from the US Census Bureau website’s Sex by Age tabulation (table B01001B).\cite{Census2021ACSDT5YSPT2021.B01001} We then multiplied these values by published estimates of the proportion of males reporting sex with male partners by race/ethnicity and region (Illinois or Cook County), which ranged from 5.6\% among adult Black males \cite{lieb_statewide_2011}, to 6.6\% among adult males overall. \cite{grey_estimating_2016} This yielded estimates of the population size of young Black MSM in Chicago of 5000-7000. We scaled the agent population up to 10,000 to ensure a sufficient number of events within subgroups given the number of parameters in the model. 
+
+% \subsection{Agent characteristics}
+% \label{sec:supp-agent-characteristics}
+% At the start of the simulation, agents were assigned characteristics (age, housing status, employment status, past incarceration history, depression, substance use) based on the prevalence and correlation among these factors in the uConnect data. Due to the number of variables relative to the size of the dataset used to generate the estimates, full cross-tabulation of all combinations of the above factors would have resulted in many empty cells. Therefore, we used a regression-based approach based on the parametric g-formula to assign agent characteristics while incorporating the correlation among the SDOH factors. To implement the g-formula we fit a series of logistic regression models to predict the probability of the presence of each of the SDOH factors based on the values of the other factors and age from the empirical data. The steps included: 
+
+% 1. Fitting a parametric logistic regression model for each SDOH factor using the other SDOH factors and age as predictors, following the causal ordering described in Hotton et al.~\cite{hotton_incorporating_2025}.
+% 2. Using the fitted model to compute the probability of an agent being in each SDOH state
+
+% We assumed the following ordering when assigning the factors to agents in step 2: employment, housing, mental health, and substance use. Thus, after setting the prevalence of unemployment based on the uConnect data and age based on a uniform distribution, we predicted the probability of being unhoused based on employment status and age using a logistic regression model. The probability of being depressed was predicted based on age, employment and housing, and so on for substance use. The same approach was used to estimate associations between SDOH factors and the probability of transitioning from one state to another based on the values of SDOH factors at the previous timepoint. 
+
+% The model was seeded with an HIV prevalence of 29.4\% to reflect the HIV prevalence among black MSM in Chicago during the time frame represented in the model. HIV negative agents were assigned a level of PrEP adherence to be applied if they initiated PrEP during the simulation. Agents who were HIV positive at the start of the simulation were assigned a viral load, CD4 count, and time since infection by sampling from empirical distributions of diagnosed, HIV-positive individuals [specify source/values], and were assigned a disease stage (acute, chronic, or late-stage) consistent with their sampled time since infection. %AH: fill in TODO
+
+% \subsection{Model timeframe}
+% \label{sec:supp-model-timeframe}
+% We ran the model for a burn-in period of 20 years to allow for sufficient population mixing and stabilization of trends to reflect the current HIV epidemic. The model was checkpointed (i.e., saved in its current state) at the end of the burn-in period and experiments were run over a subsequent 10-year period to allow for accumulation of a sufficient number of events.
+
+% \section{Population dynamics}
+% \label{sec:supp-pop-dynamics}
+
+% \subsection{Arrivals and departures}
+% \label{sec:supp-arrivals-departures}
+% The model was initially seeded with 10,000 agents between the ages of 16 and 34 according to a uniform distribution. Agents exit the model deterministically due to aging out at age 35 or death based on age-specific mortality rates that can be modified by HIV disease stage.  When agents exit the model the population is replenished with an 16-year old agent with characteristics assigned based on the empirical distributions of agent characteristics described above.  
+
+% \subsection{Age-specific mortality}
+% \label{sec:supp-age-mortality}
+% Age-specific mortality rates were obtained from the National Center for Health Statistics CDC WONDER database for the years 2014-2019. Annual mortality rates were converted to daily probabilities of death using the formula \[p = 1 - exp(-rt)\] , where $r$ represents the rate, assumed to be constant over time, and $t$ represents the time units of interest. In the absence of other data, we assumed that mortality rates for Black MSM were similar to the average mortality rates among the overall population of Black men in Chicago.
+
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|S[table-format=1.3e2]}
+%     \toprule 
+%                 Age group & \shortstack{All-cause mortality per \\ 100,000 population} & 
+%                  \shortstack{Daily probability\\ of death} \\ 
+%     \midrule    18 - 24 & 314.3 & 0.000008605 \\
+%                 25 - 34 & 387.8 & 0.000010617 \\
+%     \end{tabular}
+%     \caption{Age-specific all-cause mortality rates for Black males in Chicago}
+%     \label{tab:supp-mortality}
+% \end{table}
+
+% \section{Sexual Partnering and Behaviors}
+% \label{sec:supp-sexual-partnering}
+
+% \subsection{Sexual networks}
+% \label{sec:supp-sexual-networks}
+
+% Separable temporal exponential-family random graph models (STERGMs) were used to represent the dynamic sexual networks. STERGMs extend exponential-family random graph models (ERGMs) -- which represent network structure through the presence or absence of ties fit to target statistics describing an observed network -- by modeling tie formation and dissolution as separate but jointly estimated processes.\cite{krivitsky_separable_2014} We estimated separate STERGMs for the main and casual networks. Participants classified partners as main, casual, or exchange; exchange and casual partners were combined for estimation. Main and casual networks were modeled separately, with no constraint on overlap between them.
+
+% For each network, the formation model gives the probability that a non-existing tie forms at time $t$, and the persistence model the probability that an existing tie is retained, each as a logistic function of a vector of network statistics with coefficients $\theta$:
+% \begin{align}
+% \operatorname{logit} P\!\left(Y_{ij,t}=1 \mid Y_{ij,t-1}=0,\, Y^{c}_{ij,t}\right) &= \theta^{+\prime}\,\delta\!\left(g^{+}(y)\right), \\
+% \operatorname{logit} P\!\left(Y_{ij,t}=1 \mid Y_{ij,t-1}=1,\, Y^{c}_{ij,t}\right) &= \theta^{-\prime}\,\delta\!\left(g^{-}(y)\right),
+% \end{align}
+% where $Y_{ij,t}$ indicates a tie between agents $i$ and $j$ at time $t$, $Y^{c}_{ij,t}$ denotes the rest of the network, $\delta(\cdot)$ is the vector of change statistics, and the superscripts $+$ and $-$ denote the formation and persistence models (fit separately for main and casual networks).
+
+% Formation statistics included the cross-sectional degree distribution (the proportion of agents with 0, 1, or $\geq 2$ ties at a given time), age homophily (the absolute age difference within a dyad), and a nodefactor term allowing agents who use substances to have more partners. The persistence model included mean partnership duration as an offset and assumed a homogeneous dissolution process, so that average partnership duration was constant across ties and did not vary with nodal characteristics. Coefficients were estimated by Markov chain Monte Carlo using the \texttt{statnet} suite of R packages\cite{handcock_statnet_2008, goodreau_statnet_2008} and passed to the simulation via the \texttt{rpy2} Python--R interface. Because networks are updated daily, partnerships can form and dissolve within a single day, representing one-time encounters; zero-duration partnerships were therefore retained when computing empirical durations and concurrency.
+
+% \subsection{Age mixing} 
+% Data on age of participants and the ages their sexual partners came from the uConnect study. Age difference between partners was calculated as the absolute difference in age in years between partners. Estimates were averaged within participants for each wave and then averaged across waves.
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%                 Absolute age difference (years) & Main partners & Casual partners \\
+%     \midrule    Mean  & 3.1 & 2.9 \\
+%     \end{tabular}
+%     \caption{Absolute difference in age in years between partners}
+%     \label{tab:supp-age-diff}
+% \end{table}
+
+% \subsection{Cross-sectional degree distribution}
+% The cross-sectional degree distribution, defined as the proportion of agents with 0, 1, or $\geq 2$ partnerships in existence at any given time, was calculated separately for main and casual partners. We compared the dates of first and last sex for the most recent partnership compared to each additional reported partnership to determine whether they overlapped. Participants who reported that they were in a relationship with someone considered their “main” or “primary” partner were assigned a degree of 1 if they did not report any concurrent partners and 2 if they reported one or more concurrent partners. Participants who did not report currently being in a relationship with a main partner were assigned a degree if 1 if their most recent partner was a casual partner with whom they had no concurrent casual partners and 2 if they reported 2 or more concurrent casual partners. Participants who did not report any main or casual partners were assigned a degree of 0. 
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%                 Total partnerships & Main partners & Casual partners \\
+%     \midrule    0 & 0.631 & 0.613 \\
+%                 1 & 0.348 & 0.317 \\
+%                 2 or more & 0.021 & 0.070 \\
+%     \end{tabular}
+%     \caption{Cross-sectional degree distribution for main and casual partnerships}
+%     \label{tab:supp-degree}
+% \end{table}
+
+% \subsection{Partnership duration}
+% Partnership duration was obtained by comparing the dates of first and last sex with the most recent sex partner in uConnect, separately for main and casual partners. Partnership durations were averaged across waves and partner types for each participant. The extent to which this cross-sectional estimate of partnership duration reflects the average duration of partnerships in the population assumes that right censoring of estimated duration of ongoing partnerships is countered by left truncation of partnerships that ended before the period covered by the survey (past 6 months). 
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%                     Relationship duration (days) & Main partners & Casual partners \\   
+%     \midrule        Mean (SD) & 441 (619) & 118 (442)  \\
+%                     Median (IQR) & 184 (61-579) & 31 (0-153)\\
+%     \end{tabular}
+%     \caption{Mean partnership duration by partner type}
+%     \label{tab:supp-rel-duration}
+% \end{table}
+
+% \section{Sexual behaviors}
+% \label{sec:supp-sexual-behaviors}
+% \subsection{Condom use}
+% \label{sec:supp-condom-use}
+% Condom use was specified by drawing from a binomial distribution with a mean probability that varied according to partner type individual and partner serostatus. Participants reported the frequency of condom use for anal sex (position not specified) on a 5-point Likert-type scale from “Never” to “Always” for up to 5 partners with whom they had sex in the past 6 months. Scale values were converted to numeric values by assigning values of 0, 0.25. 0.5, 0.75, and 1.0 to the corresponding categories ("Never" to "Always")  and then averaging across partners for each participant. Partners of unknown HIV status were classified as serodiscordant. Condom use was assigned at the level of the dyad (edge) when the partnership formed and remained constant for the duration of the partnership.
+
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%      \toprule
+%                 Partnership type & Main Partners & Casual partners \\
+%     \midrule    Seroconcordant partners & 0.59 (0.55 - 0.63) & 0.79 (0.76 - 0.83) \\
+%                 Serodiscordant partners & 0.75 (0.71 - 0.79) & 0.83 (0.79 - 0.86) \\
+%     \end{tabular}
+%     \caption{Condom use by partner type and serostatus}
+%     \label{tab:supp-condom}
+% \end{table}
+
+% \subsection{Frequency of sex in ongoing partnerships}
+% The daily probability of sex within main and casual partnerships was calculated as the total number of sex events with each partner divided by the duration of the partnership. This likely underestimates the frequency of sex in longer-term relationships due to recall bias, and because the survey question capped the highest upper value at $> 50$ times. Therefore, we examined the daily probability of sex for partnerships of durations < 90 days, < 180 days, and < 365 days and based the value on partnership durations of 6 months or less. Data came from wave 3 of uConnect. Even limiting the timeframe to 3 months resulted in frequency of sex less than once per week in main and casual partnerships, which is lower than has been reported elsewhere.(17) Therefore, we experimented with this value in sensitivity analysis using 1.54 acts per week (0.22 acts per day) with main and 0.96 acts per week (0.14 acts per day) with casual partners as the upper bounds for sensitivity analysis based on data from Jenness et al. (17)
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%                 Probability & Main partnerships & Casual partnerships \\
+%     \midrule    Mean (SD) & 0.12 (0.09) & 0.07 (0.07) \\
+%     \end{tabular}
+%     \caption{Daily probability of anal sex among those in ongoing partnerships }
+%     \label{tab:supp-sex-freq}
+% \end{table}
+
+% \subsection{Sexual role preferences}
+% Role versatility was based on data from uConnect. Participants reported, for each partner, their sexual position as “always bottom”, “usually bottom”, “equally top and bottom”, “usually top”, and “always top”. These were converted to numeric values of 0, 0.25, 0.5. 0.75, and 1.0 and averaged across partners within individuals in each wave, and then across waves[check this]. Participants with average values of 0 were classified as exclusively receptive and 1 as exclusively insertive (i.e., they reported being “always bottom” or “always top” across all partnerships); others were classified as versatile. Role category was assigned as a fixed characteristic at the start of the simulation. A constraint term was added to the ERGM to prevent partnerships between two exclusively insertive or exclusively receptive agents. If two versatile agents were partnered, each was randomly assigned a role at the start of the partnership and that role remained the same for the duration of the partnership.
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule 
+%                  Role & main partnerships & casual partnerships \\
+%      \midrule    Exclusively insertive & 0.184 & 0.239 \\
+%                  Exclusively receptive & 0.262 & 0.285 \\
+%                  Versatile & 0.555 & 0.476 \\
+%     \end{tabular}
+%     \caption{Sexual role with main and casual partners}
+%     \label{tab:supp-sex-role}
+% \end{table}
+
+% \section{HIV/AIDS}
+% \label{sec:supp-hiv-aids}
+
+% \subsection{HIV disease progression}
+
+% Following infection, agents progress through acute, chronic (asymptomatic), and late-stage infection. The acute stage lasts 90 days.\cite{little_viral_1999} Agents then enter the chronic stage, which continues until the CD4 count falls below 200 cells/mm\textsuperscript{3}, marking the onset of late-stage infection. Time spent in the chronic and late stages -- and the associated infectivity and mortality -- can be modified by ART, as described below. In the absence of treatment, the chronic and late stages last on average approximately 10 years and 2 years, respectively. % NOTE: harmonize this value with SA.3 (currently "8 years") and SA.9.5 ("~10 years")
+
+% \paragraph{CD4 evolution}
+% CD4 counts for HIV-negative agents were set to 916 cells/mm\textsuperscript{3}.\cite{witt_predictors_2013} In the absence of treatment, CD4 declines after infection according to a square-root--scale regression of CD4 on time since seroconversion and age at seroconversion, adapted from Pantazis et al.~\cite{pantazis_hiv_2012}:
+% \begin{equation}
+% \sqrt{CD4_t} = \beta_0 + \beta_1 R + \beta_2 T + \beta_3 (T \times R) + \beta_4 (T \times A),
+% \end{equation}
+% where $CD4_t$ is the CD4 count $t$ years after seroconversion, $R$ is an indicator of African descent (set to 1), $T$ is time in years since seroconversion, and $A$ is an indicator for age at seroconversion (0 for ages 15--29, 1 for ages 30--39). The estimated coefficients were $\beta_0 = 23.53$, $\beta_1 = -0.76$, $\beta_2 = -1.49$, $\beta_3 = 0.34$, and $\beta_4 = -0.10$; fitted values on the square-root scale are squared to return to the CD4 scale. Because participants enrolled on average 6 months after seroconversion, the intercept-implied initial CD4 count was approximately 553 cells/mm\textsuperscript{3} ($\approx 23.53^2$). We therefore assumed a steep linear decline over the first 6 months---from 916 cells/mm\textsuperscript{3} at infection to approximately 553 cells/mm\textsuperscript{3} at 6 months---after which the trajectory followed the equation above.
+
+% \subsection{Impact of treatment on CD4 evolution}
+% If an agent initiates ART, their CD4 count increases while on ART by 15 cells/mm3 per month to the first of: reaching pre-treatment CD4 count, or 3 years.\cite{fairall_effectiveness_2008, bussmann_five-year_2008}   If agents stop ART, CD4 declines by 15 cells/mm3 per month until they go back on treatment or they reach the point on the CD4 trajectory at which they would have been if they had never started treatment.
+
+% \subsection{HIV RNA evolution}
+% Viral load for treatment-naïve agents followed a deterministic trajectory, in which viral load increased steeply from 0 to 21 days of infection from 0 to 6.17 log10 copies/mL and then declined to a viral setpoint of 4.42 log10 copies/mL over the next 69 days. In the absence of treatment, the viral load was maintained at the viral setpoint for the duration of the chronic stage, and subsequently increased to 5.05 log10 copies/mL over the duration of late-stage infection. 
+
+% \subsection{Impact of treatment on HIV RNA evolution}
+% The viral load trajectory could be modified by ART use such that if an agent is on ART, their viral load declines uniformly over the next 30 days from the current viral load value to a value consistent with viral suppression (<200 log10 copies/mL). If treatment is interrupted, viral load increases uniformly over the next 30 days to the point on the viral load trajectory where they would have been if they had never started treatment (i.e., most go back to the chronic stage viral load of 4.42 log10 copies/mL).
+
+
+% \begin{table}[]
+%     \centering
+%  %   \begin{tabular}{p{9cm}|c|p{3cm}}
+%     \small
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%        HIV RNA evolution parameters  & Value & Source \\
+%     \midrule
+%         Time from infection to peak viral load & 21 days & \cite{little_viral_1999} \\
+%         Time from infection to viral setpoint & 90 days & \cite{little_viral_1999} \\
+%         Time from ART initiation to viral suppression & 30 days & source \\
+%         Time from ART cessation to viral rebound & 30 days & Set equal to \\ 
+%         & & rebound time above \\
+%         Peak (acute stage) viral load & 6.17 log10 copies/ml & \cite{pilcher_frequent_2004} \\
+%         Viral load set point & 4.42 log10 copies/ml & \cite{pilcher_frequent_2004} \\
+%         Late-stage viral load & 5.05 log10 copies/ml & \cite{wawer_rates_2005} \\
+%         Undetectable viral load & 200 copies/mL & Standard cutoff \\
+%         & (2.301 log10 copies/mL) &  \\
+%     \end{tabular}
+%     \caption{Parameters defining HIV RNA trajectories}
+%     \label{tab:supp-hiv-rna}
+% \end{table}
+
+
+%  \subsection{Impact of CD4 count on mortality}
+% Agents with CD4 counts ${>}$ 500 cells/mm3 were assumed to have the same mortality as those without HIV. If the CD4 count fell below 500, the risk of death increased with decreasing CD4 counts by multiplying the age-specific mortality rates by a factor based on published estimates.\cite{leierer_lower_2021} Based on a cohort study from Austria, during the most recent observation period (2012-2014) all-cause mortality adjusted hazard ratios (aHR) by CD4 count (compared to CD4 >500) controlling for having been on ART at the most recent assessment are shown below. From this data we fit a linear model to the log of the reported hazard ratios to obtain the value of the multiplier: 
+
+% \begin{equation}
+% M = \exp\!\left(-0.005875 \times CD4 + 2.70243\right).
+% \end{equation}
+
+% Multipliers less than 1 were truncated to a value of 1. The CD4 multiplier was calculated using the current CD4 count regardless of whether an agent was currently on or had ever been on ART, assuming that CD4 count reflects history and duration of ART use and CD4 count at ART initiation, and the estimates from the paper were adjusted for treatment status, meaning that they represent a weighted average of participants with varying degrees of HAART use. This resulted in a mean chronic stage duration of approximately 10 years  for agents who were never treated.
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%     CD4 count (cells/mm3) & aHR & 95\% CI \\
+%     \midrule
+%      0-49    & 13.42 & 8.60-20.59 \\
+%      200-349 & 4.00 & 2.71-5.90 \\
+%      350-499 & 1.44 & 0.91-2.11\\
+%      500+    & 1.0 & Ref \\
+%     \end{tabular}
+%     \caption{Impact of CD4 count on all-cause mortality}
+%     \label{tab:supp-cd4-mortality}
+% \end{table}
+
+
+% \subsection{Survival after progression to late-stage infection}
+% Maximum survival after the CD4 count fell below 200 cells/mm\textsuperscript{3} was set to 2, 5, or 15 years based on clinical expertise, roughly aligning with a meta-analysis of survival with HIV and AIDS with and without treatment.\cite{poorolajal_survival_2016} In that analysis, 2-, 4-, 6-, 8-, and 10-year survival following AIDS onset was estimated at 87\%, 86\%, 78\%, 78\%, and 61\% for patients receiving HAART, and 2-, 4-, and 6-year survival at 48\%, 26\%, and 18\% for those not receiving HAART.
+
+% The specific maximum-survival value assigned to each agent was determined by the cumulative proportion of time spent on ART between infection and late-stage onset:
+% \begin{itemize}
+%   \item $<25\%$ of time on ART: 2 years
+%   \item 25--85\%: 5 years
+%   \item $>85\%$: 15 years
+% \end{itemize}
+
+% When CD4 falls below 200 cells/mm\textsuperscript{3} and the agent is not on ART, viral load rises toward the late-stage maximum (5.05 log10 copies/mL). The CD4-based increase in age-specific mortality is applied until the first of the following, each of which triggers death and exit from the model: the CD4 count reaches 0, viral load exceeds the late-stage maximum, or the agent reaches the assigned maximum post-AIDS survival.
+
+
+% \section{Clinical Epidemiology}
+% \label{sec:supp-clinical-epi}
+
+% \subsection{HIV testing}
+% A small proportion of agents (6.6\%; Table~\ref{tab:supp-testing}) never test and, if infected, remain undiagnosed and untreated throughout the simulation. All other agents are assigned a fixed annual testing frequency at the start of the simulation, drawn from the empirical distribution observed in uConnect (mean 1.94 tests/year; Table~\ref{tab:supp-testing}); this frequency does not change over time within an agent and is converted to a per-day testing probability.
+
+% %Each agent is assigned a fixed annual testing frequency drawn from the empirical distribution observed in uConnect (mean 1.94 tests/year; Table~\ref{tab:supp-testing}), which is converted to a per-day testing probability that remains constant over the agent's time in the model.
+
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{l|c|c}
+%     \toprule
+%        Proportion never tested for HIV (95\% CI) & Mean (SD) tests per year & Median (IQR) \\ 
+%      \midrule  0.0663 (0.04858 - 0.08968) & 1.94 (2.07) &
+%                1.5 (1 - 2) \\
+%     \end{tabular}
+%     \caption{Annual testing frequency}
+%     \label{tab:supp-testing}
+% \end{table}
+
+% \subsection{Diagnosis}
+% Agents who acquire HIV during the simulation are diagnosed at their next scheduled test, unless that test falls within the 22-day window period during which acute infection may not yet be detectable by standard antibody tests~\cite{busch_committee_2000}, in which case diagnosis occurs at the following scheduled test.
+
+% \subsection{ART initiation}
+% Once diagnosed, an agent's time to ART initiation is drawn from a geometric distribution with a mean of 60 days, the average time from diagnosis to ART initiation observed in uConnect.
+
+% \subsection{Viral suppression}
+% Because individual ART-adherence trajectories could not be modeled directly, we instead modeled viral suppression, using the level of suppression observed in uConnect to represent the population-level effect of adherence. Suppression status was updated every 180 days and held constant within each interval, so over any 180-day period an agent was either virally suppressed (equivalent to full adherence) or not. At each update, the probability of being suppressed for the next 6 months was drawn from a Bernoulli distribution with mean equal to the predicted probability from a logistic regression on age, time since seroconversion, and SDOH factors (Equation~\ref{eq:vs-glm}; fitted coefficients in Table~\ref{tab:supp-vs-prep}). A change in any SDOH state also triggered an update to suppression status for the following 6 months. These estimates were consistent with surveillance data showing viral suppression of 63\% among Black MSM aged 13--24 living with diagnosed HIV in Chicago in 2021, rising to 78\% among those engaged in care (at least one viral load, CD4, or genotype result in the past year).~\cite{hiv_ybmsm_chicago_2021}
+
+% \begin{equation}
+% \operatorname{logit}\!\big(\Pr(\text{virally suppressed})\big) = \beta_0 + \beta_1 A + \beta_2 T + \beta_3 H + \beta_4 E + \beta_5 D + \beta_6 S
+% \label{eq:vs-glm}
+% \end{equation}
+% % AH: insert fitted GLM coefficients (intercept, age, time since seroconversion, SDOH terms)
+% % A indicates age, T indicates time since seroconverstion, a binary indicator where 1= < 6 months and 0 = > 6 months, H indicates housing status, where 1 = unhoused and 0 = housed, E indicates employment status where 1 = unemployed and 0 = employed, D = depression, S = substance use
+
+
+% \subsection{HIV transmission}
+% The per-act probability of HIV transmission through anal intercourse depended on condom use, the HIV-negative partner's PrEP status, the sexual role of each partner, and the infected partner's stage of infection and viral load. The base per-act probability during chronic infection was 0.0073 (0.73\%) for a receptive HIV-negative partner with an infected insertive partner, and 0.0022 for an insertive HIV-negative partner with an infected receptive partner. This base probability was then modified by the factors in Table~\ref{tab:supp-transmission}: transmission increased 2.89-fold per unit increase in log10 HIV RNA, condom use reduced transmission by 70\%, and infectivity was scaled by stage of infection (5-fold during acute infection; no additional scaling during late-stage infection).
+
+% We also considered modifying the base probability by circumcision status. Circumcision protects the insertive partner against HIV acquisition in heterosexual couples~\cite{gray_male_2007, loevinsohn_effectiveness_2021}, but evidence for a protective effect among MSM is inconclusive~\cite{yuan_circumcision_2019, millett_circumcision_2008, templeton_circumcision_2009}; we therefore did not include circumcision as a modifier of transmission.
+
+% \begin{table}[]
+%     \centering
+
+%     \begin{tabular}{l|c|c}
+%     \toprule    
+%                 Description & Value & Source \\
+%     \midrule    Increase in infectivity per log10 increase \\
+%                 in viral load & 2.89 & \cite{hughes_determinants_2012} \\
+%                 Relative reduction in transmission probability with \\ 
+%                 condom use (transmission multiplied by 0.30) & 0.70 & \cite{smith_condom_2015} \\
+%                 Multiplier for increased risk during \\
+%                 acute stage infection & 5 & Calibrated value \\
+%                 Multiplier for increased risk during \\
+%                 late-stage infection & 1 & Calibrated value \\
+%                 Infectivity during chronic infection for \\
+%                 receptive partner when insertive partner \\
+%                 is infected & 0.0073 & \cite{scott_age_2014} \\
+%                 Infectivity during chronic infection for \\
+%                 insertive partner when receptive partner \\
+%                 is infected & 0.0022 & \cite{scott_age_2014} \\
+%     \end{tabular}
+%     \caption{Factors modifying HIV transmission probability}
+%     \label{tab:supp-transmission}
+% \end{table}
+
+% \subsection{External Infections} 
+% \label{sec:supp-external-infections}
+% Some infections arise from partners outside the modeled population (e.g., older men or men of other races/ethnicities). After internal transmission was resolved at each timestep, we applied an additional probability of external infection to the remaining HIV-negative agents.
+
+% Most transmissions among Black MSM occur within the same race/ethnicity group (roughly 81\% linked to other Black MSM) and relatively few to heterosexual women (7\%), so we focused the external-infection process on age-disassortative transmission.~\cite{oster_using_2015} Oster et al.\ found that 37\% of infections among Black MSM overall---and 28\% among those aged 20--24---were linked to partners more than 5 years older, with transmission more often from older to younger partners given the higher HIV prevalence at older ages.~\cite{oster_using_2015} Because those data covered ages 13--24, some older partners may still fall within the modeled range (16--34), so 28\% is treated as an approximate upper bound. We accordingly assumed that 28\% of incident infections involved a partner more than 5 years older and that 70\% of these passed from the older to the younger partner. At each daily timestep, the external-infection probability for each HIV-negative agent was computed by multiplying the internal HIV incidence rate over the preceding 90 days by 0.196 ($= 0.28 \times 0.70$) and drawing against a Bernoulli distribution; for the first 90 days, a default incidence rate of 3.0 per 100 person-years was used.
+
+
+% \section{Pre-exposure prophylaxis (PrEP)}
+% \label{sec:supp-prep}
+
+% \subsection{PrEP use}
+% Estimates of PrEP use and duration were based on uConnect and local clinical data. HIV-negative agents initiate PrEP at a daily probability calibrated so that the proportion on PrEP at any time reflects the estimated prevalence and average duration of PrEP use in Chicago. To hold PrEP prevalence steady, we set the daily initiation probability so that the expected numbers of agents starting and stopping PrEP are equal.
+
+% Let $d$ be the average duration of PrEP use, $s = 1/d$ the daily probability of stopping, $p$ the target PrEP prevalence, and $n$ the number of HIV-negative agents. Equating daily starts and stops,
+% \begin{equation}
+% n(1-p)\,i = n p s,
+% \end{equation}
+% and solving for the daily initiation probability $i$ gives
+% \begin{equation}
+% i = \frac{s p}{1-p}.
+% \end{equation}
+% The average duration of PrEP use was set to 365 days, implemented as a geometric distribution with that mean. Each agent is assigned a PrEP adherence category at initiation (Section~\ref{sec:supp-prep-adherence}) that remains fixed thereafter. Agents may start and stop PrEP multiple times, returning to the PrEP-eligible pool on discontinuation.
+
+% \subsection{PrEP adherence}
+% \label{sec:supp-prep-adherence}
+% Agents initiating PrEP were assigned to one of four adherence categories from a U.S.\ PrEP demonstration project---non-adherent, low, moderate, and high---corresponding to reductions in per-act HIV acquisition risk of 0\%, 31\%, 81\%, and 95\%, respectively, while on PrEP.~\cite{grant_uptake_2014} Agents were assigned to these categories in proportions of 21.1\%, 7.0\%, 10.0\%, and 61.9\%.~\cite{grant_uptake_2014}
+
+% \section{Incarceration}
+% \label{sec:supp-incarceration}
+
+% The daily probability of incarceration, stratified by prior incarceration history, was estimated from a Poisson regression model fit to the uConnect data. The incidence of incarceration was 8.0 per 100 person-years overall---21.0 among those with a prior incarceration history and 2.8 among those without (Table~\ref{tab:supp-incarceration}). Upon incarceration, an agent was assigned a jail duration from a geometric distribution with a mean of 58.4 days (the mean among uConnect participants incarcerated during the study; 95\% CI 19.1--97.7).
+
+
+% \begin{table}[]
+%     \centering
+%     \small
+%     \setlength{\tabcolsep}{4pt}
+%     \renewcommand{\arraystretch}{1.15}
+%    \begin{tabular}{p{6.1cm}cS[table-format=3.2, table-auto-round, round-mode=places]S[table-auto-round, round-mode=places,table-format=3.2]S[table-auto-round, round-mode=places,table-format=1.2e2, scientific-notation = true]}
+%     \toprule
+%         & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Person-years} & \multicolumn{1}{c}{\shortstack{Rate per\\100 py}} & \multicolumn{1}{c}{\shortstack{Daily prob.\\of incarceration}} \\
+%        \midrule
+%        New incarcerations between wave 1 and wave 2 & 32 & 399.4712 & 8.0106 & 0.0002194441 \\
+%        With prior incarceration history & 24 & 114.5082 & 20.9592 & 0.00057405966 \\
+%        Without prior incarceration history & 8 & 284.9630 & 2.8074 & 0.00007691161 \\
+%     \bottomrule
+%     \end{tabular}
+%     \caption{Incarceration history and probability of new incarcerations, uConnect}
+%     \label{tab:supp-incarceration}
+% \end{table}
+
+%  \subsection{Impact of incarceration on HIV treatment and prevention engagement}
+% Agents receiving ART at the time of incarceration continued ART during incarceration, whereas PrEP was discontinued for agents using it before entry. Following release, agents experienced a period of disrupted ART and PrEP engagement, with duration drawn from a geometric distribution with a mean of 60 days.
+
+% \subsection{HIV transmission in jail}
+% Data were insufficient to model sexual networks within jail or to estimate the share of transmissions occurring inside versus outside jail. To allow some infections among incarcerated agents, we applied a random infection process analogous to that used for external infections (Section~\ref{sec:supp-external-infections}), replacing the external multiplier with a jail-specific one. Specifically, we assumed HIV incidence in jail was 50\% lower than the concurrent incidence in the non-incarcerated model population, where the latter was computed dynamically as the mean daily incidence (new infections per timestep divided by the number HIV-negative at the start of the timestep) over the preceding 90 days.
+
+% \subsection{Incarceration and sexual networks}
+% Incarceration disrupts existing partnerships, which may or may not resume after release. When an agent is incarcerated, their partners return to the pool eligible to form new ties; if a partner has not re-partnered by the time of release, the original partnership may either resume or dissolve.
+
+% The probability that a partnership survives a period of incarceration was derived from a partnership survival curve: we simulated partnership dynamics with jail processes disabled over 14 years and, from a mid-simulation reference point, computed the proportion of partnerships still intact after 1, 2, 3, \ldots{} days. Evaluated at the agent's jail duration, this gives the base probability that the partnership would have persisted absent incarceration. We multiplied this by a retention multiplier of 0.8 to reflect the reduced likelihood of resumption after release. The 0.8 value was estimated from uConnect, where partner retention over the 9-month interval between visits was approximately 20\% among agents who experienced incarceration versus 25\% among those who did not.
+
+% \section{Social Determinants of Health (SDOH)}
+% \label{sec:supp-sdoh}
+
+% \subsection{Factor definitions}
+% \label{sec:supp-sdoh-def}
+
+% \paragraph{Incarceration history} At the baseline uConnect visit, incarceration history was defined as having ever spent at least one night in jail, prison, or detention. At follow-up, participants reported any incarceration since their prior visit.
+
+% \paragraph{Housing} Agents were classified as currently unhoused if living on the street, in a shelter, in a single-room-occupancy hotel, temporarily with friends or relatives, or in a vehicle; all others were classified as housed.
+
+% \paragraph{Employment} Agents were classified as employed if working full-time (>30 hours/week) or part-time ($\leq$30 hours/week).
+
+% \paragraph{Depression} Depression was defined as a t-score >62 on the Brief Symptom Inventory (BSI-18)~\cite{derogatis_bsi_2000}, an established cutoff for clinically relevant symptoms over the past week.
+
+% \paragraph{Substance use} Substance use was defined as any past-12-month use of methamphetamine, crack, cocaine, ecstasy, or heroin (cannabis excluded). Heroin use was rare (<2\%), so this measure primarily reflects stimulant use.
+
+% \subsection{Baseline assignment via the g-formula}
+% \label{sec:supp-sdoh-baseline}
+
+% Because SDOH factors are interdependent, we assigned each agent a joint baseline SDOH profile that reproduces both the marginal prevalence of each factor (Table~\ref{tab:supp-sdoh-prob}) and their observed co-occurrence, rather than sampling each factor independently. We used the parametric g-formula~\cite{naimi_introduction_2017, mooney_g-computation_2022}, following an assumed causal ordering among age ($L$), employment ($E$), housing instability ($H$), depression ($D$), and substance use ($S$) (Figure~\ref{fig:supp-sdoh-dag}). Under this ordering, the joint distribution factorizes as
+% \begin{equation}
+% p(H, D, S \mid E, L) = p(H \mid E, L)\; p(D \mid H, E, L)\; p(S \mid D, H, E, L),
+% \end{equation}
+% and each conditional was estimated by logistic regression on its causal parents using uConnect data. For each agent, employment was drawn from its age-conditional marginal, after which housing, depression, and substance use were sampled sequentially from the fitted conditionals. A fuller account of the estimation procedure is given in Fadikar et al.~\cite{fadikar_uncertainty_2026}.
+
+% \begin{figure}[htbp]
+% \centering
+% % \includegraphics[width=0.6\linewidth]{figures/sdoh_dag.png}
+% \caption{Assumed causal ordering among age ($L$), employment ($E$), housing instability ($H$), depression ($D$), and substance use ($S$) used for baseline SDOH assignment.}
+% \label{fig:supp-sdoh-dag}
+% \end{figure}
+
+
+% \subsection{State-transition dynamics}
+% \label{sec:supp-sdoh-transitions}
+
+% Each agent carries a state chart for each SDOH dimension (e.g., housed/unhoused, employed/unemployed), evaluated every 30 days. At each evaluation, an agent either remains in its current state or transitions, with HIV infection and death as the only absorbing states. Base monthly transition probabilities (Table~\ref{tab:supp-sdoh-prob}) were estimated from transitions observed between uConnect waves 1 and 2, computed as person-time rates and converted to monthly probabilities via $p = 1 - \exp(-rt)$. These base probabilities are modified by an agent's other SDOH states, as described in Section~\ref{sec:supp-sdoh-transition-effects}.
+
+
+% \begin{table}[]
+%     \centering
+%     \small
+%     \setlength{\tabcolsep}{4pt}
+%     \renewcommand{\arraystretch}{1.15}
+%     \begin{tabular}{p{6.6cm}p{4.1cm}p{4.1cm}}
+%     \toprule
+%         Factor & \shortstack{Baseline prevalence (\%)\\(95\% CI)} & \shortstack{Transition probability\\(95\% CI)} \\
+%         \midrule
+%         Housing (currently unhoused) & 6.68 (4.83--8.95) & \\
+%         Housed $\to$ Unhoused (H1) & & 0.0054 (0.0035--0.0079) \\
+%         Unhoused $\to$ Housed (H2) & & 0.0730 (0.0469--0.1075) \\
+        
+%         Unemployment (current) & 31.39 (27.75--35.21) & \\
+%         Employed $\to$ Unemployed (E1) & & 0.0165 (0.0126--0.0212) \\
+%         Unemployed $\to$ Employed (E2) & & 0.0504 (0.0398--0.0628) \\
+        
+%         Substance use (past 12m) & 13.11 (10.55--16.03) & \\
+%         No substance use $\to$ Substance use (S1) & & 0.0074 (0.0051--0.0104) \\
+%         Substance use $\to$ No substance use (S2) & & 0.0462 (0.0318--0.0645) \\
+        
+%         Depression (current) & 11.07 (8.67--13.87) & \\
+%         Not depressed $\to$ Depressed (D1) & & 0.0074 (0.0050--0.0105) \\
+%         Depressed $\to$ Not depressed (D2) & & 0.0699 (0.0497--0.0950) \\
+%     \bottomrule
+%     \end{tabular}
+%     \caption{Baseline prevalence and monthly transition probabilities}
+%     \label{tab:supp-sdoh-prob}
+% \end{table}
+
+
+% \subsection{Effect of SDOH on transition probabilities}
+% \label{sec:supp-sdoh-transition-effects}
+
+% An agent's base monthly transition probability was modified according to its other SDOH states at the previous timestep. Following the same causal ordering used for baseline assignment, we estimated the relative risk (RR) of each transition associated with each SDOH factor (Table~\ref{tab:supp-sdoh-rr}). When an agent had multiple relevant factors, their RRs were combined multiplicatively to give the overall modifier applied to the base transition probability.
+
+% \begin{landscape}
+% \begin{table}[htbp]
+% \centering
+% \begin{threeparttable}
+% \caption{Relative risk of each SDOH state transition associated with other SDOH factors (95\% CI)}
+% \label{tab:supp-sdoh-rr}
+% \small
+% \begin{tabular}{lccccc}
+% \toprule
+% Transition & Unhoused & Unemployed & Depressed & Substance use & Incarceration (ever) \\
+% \midrule
+% Housed $\to$ Unhoused (H1)         & ---               & 1.70 (1.57--1.85) & 1.29 (1.18--1.39) & 0.30 (0.26--0.34) & 1.35 (1.23--1.47) \\
+% Unhoused $\to$ Housed (H2)         & ---               & 0.90 (0.89--0.91) & 0.96 (0.95--0.97) & 1.10 (1.09--1.11) & 0.95 (0.94--0.96) \\
+% Employed $\to$ Unemployed (E1)     & 0.96 (0.90--1.02) & ---               & 0.35 (0.32--0.39) & 0.80 (0.75--0.86) & 1.10 (1.04--1.16) \\
+% Unemployed $\to$ Employed (E2)     & 1.03 (1.00--1.05) & ---               & 1.55 (1.51--1.59) & 1.13 (1.10--1.16) & 0.94 (0.91--0.97) \\
+% No SU $\to$ Substance use (S1)     & 0.49 (0.42--0.56) & 1.45 (1.30--1.61) & 0.75 (0.66--0.84) & ---               & 1.16 (1.04--1.29) \\
+% Substance use $\to$ No SU (S2)     & 1.45 (1.40--1.49) & 0.75 (0.73--0.78) & 1.18 (1.14--1.22) & ---               & 0.90 (0.87--0.93) \\
+% Not depressed $\to$ Depressed (D1) & 0.29 (0.26--0.32) & 0.87 (0.80--0.94) & ---               & 1.30 (1.21--1.39) & 1.08 (1.01--1.17) \\
+% Depressed $\to$ Not depressed (D2) & 1.34 (1.32--1.37) & 1.05 (1.03--1.07) & ---               & 0.89 (0.87--0.91) & 0.97 (0.95--0.99) \\
+% \bottomrule
+% \end{tabular}
+% \begin{tablenotes} %[flushleft]
+% \footnotesize
+% \item Values are relative risks (95\% CI), exponentiated from log(RR) coefficients. RR $>$ 1 indicates a higher monthly probability of transition for agents with the factor present versus absent; RR $<$ 1 indicates a lower probability.
+% \item Own-factor cells (---) are not applicable. Incarceration history is time-invariant and therefore has no transition row of its own.
+% \end{tablenotes}
+% \end{threeparttable}
+% \end{table}
+% \end{landscape}
+
+% \subsection{Association of SDOH with viral suppression and PrEP use}
+% \label{sec:supp-sdoh-vs-prep}
+
+% \paragraph{Viral suppression.} The probability that an agent on ART is virally suppressed over each 6-month interval is predicted by the logistic model introduced in Section~\ref{sec:supp-clinical-epi} (Eq.~\ref{eq:vs-glm}), which includes age, time since seroconversion, and SDOH factors. Coefficients were estimated from durable viral suppression in uConnect (suppression across all three waves versus inconsistent or no suppression) and are applied at each 180-day update and whenever an SDOH state changes. Fitted values are given in Table~\ref{tab:supp-vs-prep}.
+
+% \paragraph{PrEP use.} The probability of PrEP use was estimated from a mixed-effects logistic regression (robust standard errors) with age, depression, substance use, incarceration history (ever), employment, and housing as predictors; coefficients were entered as model parameters (Table~\ref{tab:supp-vs-prep}).
+
+
+% \begin{table}[htbp]
+% \centering
+% \begin{threeparttable}
+% \caption{Association of SDOH and other factors with viral suppression and PrEP use.}
+% \label{tab:supp-vs-prep}
+% \begin{tabular}{lcc}
+% \toprule
+% Predictor & Viral suppression & PrEP use \\
+% \midrule
+% Age                          & 1.13 (0.94--1.36) & ---               \\
+% Time since seroconversion    & 0.11 (0.04--0.34) & ---               \\
+% Unhoused                     & 0.18 (0.02--1.46) & 0.85 (0.37--1.96) \\
+% Unemployed                   & 0.98 (0.30--3.15) & 0.87 (0.49--1.53) \\
+% Depressed                    & 0.60 (0.12--2.93) & 0.47 (0.14--1.60) \\
+% Substance use                & 0.40 (0.10--1.62) & 0.99 (0.44--2.24) \\
+% Incarceration history (ever) & ---               & 1.21 (0.68--2.15) \\
+% \bottomrule
+% \end{tabular}
+% \begin{tablenotes}%[flushleft]
+% \footnotesize
+% \item Values are point estimates (95\% CI). Viral suppression estimates are odds ratios from logistic regression; PrEP use estimates are risk ratios.
+% \item Em-dashes (---) indicate predictors not included in that model rather than null or zero effects: age was included only in the viral suppression model, and incarceration history only in the PrEP use model. Time since seroconversion does not apply to the PrEP use model.
+% \end{tablenotes}
+% \end{threeparttable}
+% \end{table}
+
+
+\section{Model Calibration}
+\label{sec:supp-model-calibration}
+
+\subsection{Calibration targets}
+\label{sec:supp-calibration-targets}
+Direct estimates of HIV incidence among young Black MSM are not available from routine surveillance, and it is difficult to establish which estimates best approximate true incidence: surveillance data are subject to reporting delays, misclassification of risk behavior and gender identity, and undercounting of undiagnosed infections, while cohort estimates may be imprecise or non-representative. For reference, HIV incidence in the uConnect cohort was 8.5 per 100 person-years (95\% CI 6.0--11.9; 33 incident infections among 300 participants confirmed HIV-negative at baseline).\cite{lancki_preexposure_2018} Prevalence estimates share some of these limitations but are more stable over time and more reliably estimated from population-level surveillance. We therefore used HIV prevalence from surveillance data as the primary calibration target -- specifically, the mean prevalence over the final five simulated years, with a target value of 29.4\% (Table~\ref{tab:supp-prevalence}).
+
+\begin{table}[htbp]
+\centering
+\caption{HIV prevalence estimates among Black MSM in Chicago used as calibration targets.}
+\label{tab:supp-prevalence}
+\begin{tabular}{lcc}
+\toprule
+Group / period & Estimate & Source \\
+\midrule
+Approximate number of Black MSM ages 13-34 \\
+living with HIV as of 2023  & 1723 & \cite{idph_msm_plwhiv_chicago_2024} \\
+Approximate population size of Black males \\
+ages 15-34 in Chicago (2021 ACS) & 116853 & \cite{Census2021ACSDT5YSPT2021.B01001} \\
+Approximate number of Black MSM ages \\
+15-34 in Chicago & 6544 & \cite{lieb_statewide_2011, Census2021ACSDT5YSPT2021.B01001} \\
+Undiagnosed infection among young Black MSM \\
+in Chicago & 12\% & \cite{gtz_hiv_status_awareness_2021} \\
+Approximate HIV prevalence (\%) among \\
+young Black MSM in Chicago & 29.49 & Derived from above \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Morris Screening} 
+
+Due to the limitations of existing data, the values for multiple model parameters were uncertain. We explored plausible ranges for these parameters based on empirical data and existing literature as part of the calibration process to select the most likely set of parameter values that approximated the target HIV prevalence. Because of the large number of parameters, we were not able to conduct full sensitivity analysis on all of them. Therefore we selected the most uncertain parameters (i.e., those for which there was limited data or existing data was considered imprecise) and those considered to have a large impact on model outcomes (eg transmission probability), which resulted in 21 parameters for Morris screening.
+
+Before model calibration, we performed a dimension reduction using the Morris screening method~\cite{morris1991factorial, campolongo2007effective} to identify the most influential parameters among the 21 uncertain model inputs. In the Morris screening method, elementary effects are computed, and the model inputs are ranked according to their influence on model outputs while accounting for potential nonlinearities and interactions. Briefly, the approach perturbs each parameter one at a time across a discretized grid of the input space, while randomly sampling the remaining parameters within their respective ranges. For each parameter \(x_i\), the corresponding elementary effect is computed as
+\begin{equation}
+    EE_i = \frac{Y(\mathbf{x}_{1}, \ldots, x_i + \Delta, \ldots, \mathbf{x}_{k}) - Y(\mathbf{x})}{\Delta},
+\end{equation}
+where \(Y(\cdot)\) denotes the model output of interest (in our case, the average HIV prevalance), and \(\Delta\) is a predetermined step size within the normalized \([0,1]\) input space. Repeating this process over multiple random trajectories yields a distribution of elementary effects for each parameter. Two summary statistics are typically derived: (i) the mean of the absolute elementary effects, \(\mu^*_i\), which reflects the overall influence of parameter \(i\) on the output, and (ii) the standard deviation, \(\sigma_i\), which captures nonlinearity and interaction effects. Parameters with large \(\mu^*_i\) are considered highly influential, whereas those with large \(\sigma_i\) indicate complex effects or interactions.
+
+We implemented the Morris design using \(r = 20\) trajectories and \(p = 6\) grid levels. Based on the joint examination of \(\mu^*_i\) and \(\sigma_i\) values, six parameters were identified as key drivers of the model outputs and retained for subsequent calibration. The selected parameters and their ranges are summarized in Table~\ref{tab:morris_params}, while Figure~\ref{fig:morris_results} shows the corresponding sensitivity indices.
+
+\begin{landscape}
+\begin{table}
+\centering
+\caption{Model parameters and ranges used in the Morris screening analysis.}
+\label{tab:morris_params}
+{\footnotesize
+\begin{tabular}{c|l|l|S[table-auto-round, round-mode=places,table-format=1.2e2, scientific-notation = true]|S[table-auto-round, round-mode=places,table-format=1.2e2, scientific-notation = true]}
+\toprule
+        Symbol & Parameter & Description & lb & ub \\
+\midrule
+        $\theta_{1}$  & prep.bl.use.prop & Proportion using PrEP &  0.10 &   0.40 \\
+        $\theta_{2}$  & prep.mean.days.usage.0 & Mean duration of PrEP use (days) & 60.00 & 540.00 \\
+        $\theta_{3}$  & art.init.lag.mean & Time from diagnosis to ART initiation (days) & 7.00 & 270.00 \\
+        $\theta_{4}$  & non.testers.prop.0 & Proportion who never test for HIV &  0.05 &   0.15 \\
+        $\theta_{5}$  & tests.per.year.0 & If ever tested, no. of tests per year &  0.50 &   4.00 \\
+        $\theta_{6}$  & transmission.probability.insertive.infected & Per act transmission probability if insertive partner is infected &  0.000478958 &   0.001043064 \\
+        $\theta_{7}$  & transmission.probability.receptive.infected & Per act transmission probability if receptive partner is infected &  0.000053218 &   0.000415097 \\
+        $\theta_{8}$  & seroconcordant.main.condom.prob & Probability of condom use with seroconcordant main partners &  0.05 &   0.59 \\
+        $\theta_{9}$  & serodiscordant.main.condom.prob & Probability of condom use with serodiscordant main partners &  0.20 &   0.75 \\
+        $\theta_{10}$ & seroconcordant.casual.condom.prob & Probability of condom use with seroconcordant casual partners &  0.20 &   0.79 \\
+        $\theta_{11}$ & serodiscordant.casual.condom.prob & Probability of condom use with serodiscordant casual partners &  0.20 &   0.83 \\
+        $\theta_{12}$ & prop.steady.sex.acts & Frequency of sex in main partnerships (acts/week)&  0.12 &   0.29 \\
+        $\theta_{13}$ & prop.casual.sex.acts & Frequency of sex in casual partnerships (acts/week) &  0.07 &   0.14 \\
+        $\theta_{14}$ & incarceration.prob & Daily probability of incarceration with no prior incarceration history &  0.00003846406 &   0.000153787 \\
+        $\theta_{15}$ & incarceration.with.cji.prob & Daily probability of incarceration if previously incarcerated & 0.000384809 &   0.000856345 \\
+        $\theta_{16}$ & jail.serving.time.mean & Mean duration of incarceration (days) &  2.00 & 180.00 \\
+        $\theta_{17}$ & network.retention.multiplier & Relative probability of continuing partnership post-jail &  0.20 &   1.00 \\
+        $\theta_{18}$ & post.release.interference.period.mean & Duration of disrupted ART/PrEP access post-release (days) & 30.00 & 365.00 \\
+        $\theta_{19}$ & substance.use.condom.prob.multiplier & Relative probability of condom use if either partner uses substances &  0.20 &   1.00 \\
+     %   $\theta_{20}$ & external.infections.multiplier & Proportion of total infections from external sources &  0.00 &   0.00 \\
+    $\theta_{20}$  & external.infections.per.person.day.min & Lower bound for probability of external infection &  0.00000383561644 &   0.00001841095890 \\
+    $\theta_{21}$  & external.infections.per.person.day.max & Upper bound for probability of external infection &  0.00000684931507 &   0.00003287671233 \\
+\bottomrule
+\end{tabular}
+
+}
+\end{table}
+
+\end{landscape}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/morris_musigma_heatmap_wsc.png}
+    \caption{Morris screening: combined sensitivity index $\mu^{*}\!\times\!\sigma$
+for each parameter $\theta_i$ (Table~S1) across four outputs (average HIV
+incidence and prevalence, 5- and 10-year windows). Darker cells denote more
+influential parameters.}
+
+    \label{fig:morris_results}
+\end{figure}
+
+\subsection{Bayesian Calibration}
+\label{sec:sbi}
+
+Following Morris screening, the reduced six parameter INFORM-HIV model was calibrated to reproduce the observed HIV prevalence. Let $\boldsymbol{\theta}\in\Theta\subset\mathbb{R}^6$ denote the retained parameter vector. For each parameter setting, the stochastic simulator was evaluated using multiple independent random seeds to account for intrinsic simulation variability. Annual HIV prevalence was recorded from each simulation, and the calibration summary statistic was defined as the average prevalence over the final five simulated years. The observed calibration target was the corresponding empirical five-year average HIV prevalence, $y_{\mathrm{obs}}=0.294$.
+
+Calibration was performed using simulation-based inference~\cite{dyer2024black} with sequential neural posterior estimation (NPE). A prior distribution was specified over the reduced parameter space, and the simulator was treated as an implicit generative model that maps parameter values to the prevalence summary statistic through forward simulation. NPE learns an approximation to the posterior distribution $\pi(\boldsymbol{\theta}\mid y_{\mathrm{obs}})$, which characterizes parameter values consistent with the observed prevalence.
+
+Training data were generated using a Latin hypercube design with $N=100$ parameter settings over the reduced parameter space. At each design point, the INFORM-HIV model was simulated $R=10$ times using independent random seeds, resulting in 1{,}000 simulations. The same set of random seeds was used across all parameter settings to reduce Monte Carlo variability when comparing simulator outputs. The resulting parameter-summary pairs were used to train the sequential NPE model. After training, 100 parameter vectors were sampled from the approximate posterior and used as calibrated parameter sets for the subsequent scenario analysis.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/calibrated_full_panel_hiv_lancet.png}
+    \caption{Calibration of the INFORM-HIV model. Left: posterior marginal (diagonal)
+and pairwise joint (lower triangle) densities of the six calibrated parameters.
+Right: posterior-predictive HIV prevalence trajectories (LHS prior in faint grey,
+and posterior means are highlighted by yellow) with the final-year
+prevalence histogram; the red line marks the 29.4\% calibration target.}
+
+    \label{fig:calibration_results}
+\end{figure}
+
+\section{ART and PrEP Reduction Scenario Exploration}\label{sec:supp-surrogate-scenario-exploration}
+
+Following calibration, 100 posterior samples were retained as checkpointed model states at the end of the 20-year calibration period. Each checkpoint was propagated forward for an additional 10 years under intervention settings defined by percent reductions in ART coverage and PrEP use, $\mathbf{u}=(r_{\mathrm{ART}},r_{\mathrm{PrEP}})\in\mathcal{U}\subset\mathbb{R}^2$, relative to the baseline. Direct evaluation over a dense intervention grid is computationally expensive because every intervention must be simulated for each checkpointed model state.
+
+To accelerate scenario exploration, a Gaussian process (GP) surrogate~\cite{gramacy_surrogates_2020} was constructed for each checkpoint. For a fixed checkpoint, let $\mathbf{y}(\mathbf{u})\in\mathbb{R}^{T}$ denote the projected prevalence or incidence trajectory over the next $T=10$ years. The trajectory was represented using a low-dimensional basis expansion
+
+\[\mathbf{y}(\mathbf{u}) \approx \Phi\mathbf{w}(\mathbf{u}),
+\]
+where $\Phi\in\mathbb{R}^{T\times J}$ contains basis vectors obtained from singular value decomposition and $\mathbf{w}(\mathbf{u})\in\mathbb{R}^{J}$ denotes the corresponding basis coefficients. Independent GP models were fitted to each coefficient, yielding the predictive distribution
+
+\[
+\mathbf{y}(\mathbf{u}) \mid \boldsymbol{\theta}^{(k)} \sim
+N\!\left(
+\boldsymbol{\mu}_k(\mathbf{u}),
+\boldsymbol{\Sigma}_k(\mathbf{u})
+\right),
+\]
+where $\boldsymbol{\theta}^{(k)}$ denotes the $k$th posterior sample retained during calibration.
+
+Training data for each surrogate consisted of an initial Latin hypercube design of 20 intervention combinations with 10 stochastic replicates per combination. Separate surrogate models were constructed for prevalence and incidence at each checkpoint.
+
+The final predictive distribution was obtained by averaging over the posterior samples retained during calibration,
+
+\[
+p(\mathbf{y}(\mathbf{u})\mid y_{\mathrm{obs}})
+\approx
+\frac{1}{K}
+\sum_{k=1}^{K}
+N\!\left(
+\boldsymbol{\mu}_k(\mathbf{u}),
+\boldsymbol{\Sigma}_k(\mathbf{u})
+\right),
+\]
+where $K=100$, and $\boldsymbol{\mu}_k(\cdot), \boldsymbol{\Sigma}_k(\cdot)$ are the mean and covariance of the fitted GP surrogate. This multi-surrogate formulation propagates uncertainty from both Bayesian calibration and surrogate prediction into the projected intervention outcomes.
+
+
+\clearpage
+\section{Mapping Funding Reductions to PrEP and ART use}\label{sec:supp-expenditure-estimates}
+{
+
+This section describes the derivation of the expenditure estimates and parameter values used to map changes in U.S. government HIV funding to changes in ART and PrEP coverage. The main paper presents the coverage equations; here we provide full description  of all inputs to those equations.
+
+%% ------------------------------------------------------------------
+\subsection{Model Notation}
+
+We model the relationship between annual U.S. government investment in HIV prevention and treatment and the resulting population-level coverage of ART and PrEP among MSM. The key quantities are:
+
+\begin{itemize}
+    \item $P_{\text{ART}}$: proportion of HIV-positive MSM receiving ART
+    \item $P_{\text{PrEP}}$: proportion of PrEP-eligible HIV-negative MSM using PrEP
+    \item $G_{\text{ART}}$: annual government spending on ART allocated to MSM
+    \item $G_{\text{PrEP}}$: annual government spending on PrEP allocated to MSM
+    \item $C_{\text{ART}}$: annual per-person cost of ART (2025 USD)
+    \item $C_{\text{PrEP}}$: annual per-person cost of PrEP (2025 USD)
+    \item $N_{\text{HIV+}}$: number of HIV-positive MSM in the United States
+    \item $N_{\text{HIV-}}$: number of PrEP-eligible HIV-negative MSM in the United States
+    \item $\alpha$: ART program inefficiency factor (accounts for delayed linkage,
+          suboptimal adherence, and administrative overhead)
+    \item $\beta$: PrEP program inefficiency factor (accounts for drop-off and
+          adherence losses)
+    \item $\gamma_{\text{ART}}$: proportion of HIV-positive MSM accessing ART through
+          non-governmental sources (e.g., private insurance)
+    \item $\gamma_{\text{PrEP}}$: proportion of PrEP-eligible MSM accessing PrEP through
+          non-governmental sources
+\end{itemize}
+
+%% ------------------------------------------------------------------
+\subsection{U.S. Government Expenditure Estimates}
+
+Total federal spending on HIV care and treatment in FY 2022 was approximately \$28.7 billion (base) plus \$6.7 billion (discretionary) = \$35.4 billion for
+ART-related programs, and \$7.1 billion (base) plus \$1.0 billion (discretionary) = \$8.1 billion for PrEP-related programs~\cite{KFF2023}.
+
+To allocate these national figures to the MSM population, we use two epidemiological proportions:
+\begin{itemize}
+    \item MSM account for approximately $52.4\%$ of HIV-positive individuals in the
+          United States: $638{,}900$ MSM out of $1{,}218{,}400$ total
+          HIV-positive individuals (2022)~\cite{Fed_HIV_stats}.
+    \item MSM account for approximately $70.0\%$ of adults with PrEP indications
+          in the United States: $851{,}240$ MSM out of $1{,}216{,}210$ eligible
+          adults (2018)~\cite{prepcosts2018}.
+\end{itemize}
+
+These proportions are national U.S. estimates covering all MSM regardless of
+race/ethnicity and all adult age groups.
+
+Applying these proportions to the total spending figures:
+\begin{align}
+G_{\text{ART}}  &= \$35.4\text{B} \times 0.524 \approx \$18.9\text{ billion}, \\
+G_{\text{PrEP}} &= \$8.1\text{B} \times 0.700 \approx \$5.7\text{ billion}.
+\end{align}
+
+%% ------------------------------------------------------------------
+\subsection{Per-Person Cost Parameters}
+
+\paragraph{ART cost ($C_{\text{ART}}$)}
+The annual per-person cost of ART for a virally suppressed individual was set to
+$C_{\text{ART}} = \$50{,}000$ (2025~USD), taken as the midpoint of a payer-stratified
+range derived from Bingham et al.\ 2021~\cite{BinghamFarnham2021}.
+That paper reports monthly cost parameters for HIV-positive adults with CD4~$>$500
+cells/$\mu$L (virally suppressed stratum), which annualise to \$36{,}227/year
+(2019~USD); inflating by the BLS CPI-U ratio (2019--2025: $\times$1.259) yields
+\$45{,}600/year as a government-payer lower bound. A WAC-price upper bound of
+approximately \$52{,}000/year is consistent with 2023--2024 list prices for
+Biktarvy plus standard outpatient and laboratory costs. We use \$50{,}000 as the
+central base-case estimate and explore \$45{,}600--\$54{,}000 in sensitivity analysis.
+
+\paragraph{PrEP cost ($C_{\text{PrEP}}$)}
+The annual per-person cost of PrEP was set to $C_{\text{PrEP}} = \$21{,}000$
+(2025~USD), representing the total per-person cost of delivering PrEP (medication
+plus clinical visits plus laboratory monitoring) averaged across insurance types.
+This figure reflects a weighted average of brand-name (Truvada/Descovy, WAC
+$\approx$\$22{,}000--\$24{,}000/year) and generic TDF/FTC (340B/FSS prices,
+$\approx$\$8{,}000--\$13{,}000/year) medication costs combined with annual
+clinical and laboratory costs of \$1{,}000--\$2{,}000, weighted by the insurance
+mix of current PrEP users (approximately 78\% private, 22\%
+Medicaid/uninsured)~\cite{prepcosts2018}.
+
+%% ------------------------------------------------------------------
+\subsection{Population Size Parameters}
+
+HIV-positive MSM in the U.S.\ were estimated at $N_{\text{HIV+}} = 638{,}900$ based on
+2022 CDC surveillance data~\cite{Fed_HIV_stats}.
+HIV-negative MSM with PrEP clinical indications were estimated at
+$N_{\text{HIV-}} = 851{,}240$ based on 2018 PrEP indication estimates~\cite{prepcosts2018}.
+Both figures are summarized in Table~\ref{tab:supp-pop-params}.
+
+\begin{table}[htbp]
+\centering
+\caption{Population parameters used in the funding-to-coverage model}
+\label{tab:supp-pop-params}
+\begin{tabular}{p{7.8cm}rp{2.7cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Source} \\
+\midrule
+$N_{\text{HIV+}}$: HIV-positive MSM in U.S.\ (2022)  & 638,900   & \cite{Fed_HIV_stats} \\
+Total HIV-positive in U.S.\ (2022)                    & 1,218,400 & \cite{Fed_HIV_stats} \\
+$N_{\text{HIV-}}$: MSM with PrEP indications (2018)   & 851,240   & \cite{prepcosts2018} \\
+Total adults with PrEP indications (2018)             & 1,216,210 & \cite{prepcosts2018} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ------------------------------------------------------------------
+\subsection{Calibration of Inefficiency and Substitution Parameters}
+
+At the observed baseline (current funding and coverage), the inefficiency parameters $\alpha$ and $\beta$ are solved from the coverage equations so
+that predicted coverage matches empirical coverage:
+
+\begin{align}
+\alpha &= \frac{G_{\text{ART}}}{(P_{\text{ART}} - \gamma_{\text{ART}})\,
+          C_{\text{ART}}\, N_{\text{HIV+}}}, \label{eq:supp-alpha} \\[6pt]
+\beta  &= \frac{G_{\text{PrEP}}}{(P_{\text{PrEP}} - \gamma_{\text{PrEP}})\,
+          C_{\text{PrEP}}\, N_{\text{HIV-}}}. \label{eq:supp-beta}
+\end{align}
+
+The private-substitution floors $\gamma_{\text{ART}}$ and $\gamma_{\text{PrEP}}$ represent the shares of MSM who retain access to ART or PrEP through private insurance or other means when government funding is reduced. These are informed by data on insurance coverage patterns among MSM: roughly 20--25\% of HIV-positive individuals receive care through Ryan White/ADAP, with the remainder covered by Medicaid, Medicare, or private insurance~\cite{KFF2023}, and a large share of PrEP prescriptions are reimbursed via private insurance~\cite{Gilead2021Prep,CDCPrEP2022}. Adherence and persistence data from CDC surveillance and observational studies indicate material losses between initiation and sustained engagement for both ART and PrEP~\cite{Yehia2014Continuum}.
+
+Table~\ref{tab:supp-param-estimates} summarizes the resulting parameter estimates used in the base-case analysis.
+
+\begin{table}[htbp]
+\centering
+\caption{Estimated parameter values for the ART and PrEP coverage model}
+\label{tab:supp-param-estimates}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Range} & \textbf{Base case} \\
+\midrule
+$\alpha$               & ART inefficiency factor          & 1.2--1.4   & 1.26 \\
+$\beta$                & PrEP inefficiency factor         & 3.0--5.0   & \betaPrEPBaseline  \\
+$\gamma_{\text{ART}}$  & Private ART access fraction      & 0.10--0.25 & 0.15 \\
+$\gamma_{\text{PrEP}}$ & Private PrEP access fraction     & 0.20--0.35 & \gammaPrEPBaselineDecimal \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Base-case values were set as $\alpha = 1.26$, $\beta = \betaPrEPBaseline$,
+$\gamma_{\text{ART}} = 0.15$, and $\gamma_{\text{PrEP}} = \gammaPrEPBaselineDecimal$
+(Table~\ref{tab:supp-param-estimates}).
+
+The $\gamma_{\text{ART}} = 0.15$ value reflects the approximately 15\% of
+HIV-positive MSM who access ART via private insurance; the remaining 85\% are covered by
+Medicaid, Medicare, or Ryan White CARE Act funds~\cite{KFF2023}.
+The $\gamma_{\text{PrEP}} = \gammaPrEPBaselineDecimal$ value is derived as $\rBaselineDecimal \times P_{\text{PrEP}}^{0}$,
+the privately insured share of current PrEP users multiplied by the observed baseline
+PrEP coverage~\cite{CDCPrEP2022,prepcosts2018}.
+The inefficiency factors are consistent with empirical estimates of linkage-to-care rates
+and adherence patterns stratified by payer source~\cite{Yehia2014Continuum}.
+
+The large calibrated value $\beta \approx 4.0$ reflects the fact that
+$G_{\text{PrEP}}$ encompasses broad HIV prevention infrastructure costs (outreach,
+navigation, clinic support) beyond medication reimbursement; it should be interpreted
+as a program overhead factor rather than a per-unit service inefficiency.
+This is acknowledged as a limitation of the current linear model.
+
+%% ------------------------------------------------------------------
+\subsection{Coverage Predictions Under Funding Reductions}
+
+Let $\Delta \in [0,1]$ denote a proportional funding reduction, so that government spending under the reduced scenario is $(1-\Delta)\,G$. Coverage under a funding reduction is then:
+
+\begin{align}
+P_{\text{ART}}(\Delta)  &= \min\!\left(1,\;
+    \frac{(1-\Delta)\,G_{\text{ART}}}{\alpha\, C_{\text{ART}}\, N_{\text{HIV+}}}
+    + \gamma_{\text{ART}}\right), \label{eq:supp-PART-delta} \\[6pt]
+P_{\text{PrEP}}(\Delta) &= \min\!\left(1,\;
+    \frac{(1-\Delta)\,G_{\text{PrEP}}}{\beta\, C_{\text{PrEP}}\, N_{\text{HIV-}}}
+    + \gamma_{\text{PrEP}}\right). \label{eq:supp-PPrEP-delta}
+\end{align}
+
+The privately financed component $\gamma$ is unaffected by $\Delta$; only the publicly financed share of coverage declines. The $\min(1,\cdot)$ cap ensures that coverage cannot exceed 100\%.
+
+For example, a 50\% reduction in government ART spending reduces ART coverage by less than
+50\%; the actual decline is $(1 - \gamma_{\text{ART}})\times 50\% \approx 42.5$~percentage
+points starting from baseline, before the min constraint is applied.
+
+%% ------------------------------------------------------------------
+\subsection{Limitations of the Linear Approximation and Directions for Future Work}
+
+The main paper adopts a linear formulation for the mapping from government spending to ART and PrEP coverage, chosen for parsimony and because the true empirical relationship between aggregate funding and coverage is not well-identified at the scale of the reductions considered. This section elaborates on the sources of nonlinearity that the linear model abstracts away, and outlines how future work could incorporate them.
+
+\paragraph{Why the linear model is a first-order approximation.} In practice, the true response of coverage to funding changes is likely nonlinear. Large funding cuts may induce threshold effects such as clinic closures, workforce contraction, or supply-chain disruptions, which would amplify reductions in coverage
+beyond what a proportional model predicts. Moreover, the impact of funding changes is heterogeneous across insurance and socioeconomic strata: privately insured individuals are largely insulated from short-term changes in public funding, while uninsured populations --- who depend most heavily on Ryan White/ADAP and Medicaid --- are more directly and severely affected. Neither of these mechanisms is captured by the constant-parameter linear model.
+
+\paragraph{Three nonlinear mechanisms.} Three concrete sources of nonlinearity are abstracted away in the current model:
+
+\begin{enumerate}
+    \item \textbf{Insurance heterogeneity.} MSM are stratified by insurance status
+    (private, Medicaid, uninsured). A uniform percentage reduction in government
+    spending produces highly unequal impacts across strata: privately insured
+    individuals are largely insulated (high private substitution floor $\gamma$),
+    while uninsured individuals face steep declines (low $\gamma$, high
+    $\alpha$/$\beta$). The aggregate population-level response is therefore
+    nonlinear even though each stratum responds linearly to its allocated funding.
+    An illustrative calculation suggests that a 30\% budget cut might reduce ART
+    coverage among the privately insured by only 2--3 percentage points, Medicaid
+    enrollees by 15--20 points, and the uninsured by 40--50 points --- yielding an
+    aggregate decline substantially larger than the naive linear prediction.
+
+    \item \textbf{Threshold and infrastructure collapse.} Healthcare delivery systems
+    carry fixed costs (staffing, facilities, equipment). Sufficiently large funding
+    cuts can trigger clinic closures or workforce losses that amplify coverage
+    declines beyond linear predictions once spending falls below a structural
+    threshold (estimated at roughly $65$--$75\%$ of baseline in related
+    literature). Below this threshold, the effective inefficiency of the remaining
+    system rises sharply as economies of scale are lost.
+
+    \item \textbf{Dynamic inefficiency.} The parameters $\alpha$ and $\beta$ are
+    held constant across all funding levels in the current model. In reality,
+    large cuts are likely to increase inefficiency (loss of economies of scale,
+    higher administrative overhead per patient), while funding expansions may
+    improve it. Allowing $\alpha$ and $\beta$ to vary with spending level would
+    capture this feedback.
+\end{enumerate}
+
+\paragraph{Implications for the current analysis.}
+For the funding reductions considered in the main analysis (up to $75\%$ of baseline), the linear model likely understates coverage losses among uninsured and publicly insured MSM while providing a reasonable approximation for privately insured subpopulations. Overall population-level estimates should therefore be interpreted as conservative: true coverage losses could be larger if threshold effects or insurance-heterogeneity mechanisms are operative. Sensitivity of results to the choice of $\gamma$, $\alpha$, and $\beta$ can be partially assessed by varying these parameters within the ranges reported in Table~\ref{tab:supp-param-estimates}. Table~\ref{tab:supp-r-sensitivity} reports this directly for $\gamma_{\text{PrEP}}$'s underlying payer-mix parameter $r$ at $r=\rLower$ (unvalidated placeholder pending AFC), $r=\rBaseline$ (base case), and $r=\rUpper$ (prior national estimate); $P^{0}=\PZeroPrEP$ is not varied separately, since $(P^{0}-\gamma_{\text{PrEP}})/P^{0}=1-r$ is algebraically independent of $P^{0}$.
+
+\input{../04_cost_mapping/sensitivity/output/paper_sensitivity_table.tex}
+
+\paragraph{Future work.}
+Incorporating insurance stratification is the most tractable near-term extension: data on population shares by insurance status, stratum-specific substitution rates, and stratum-specific inefficiency factors are available from CDC National HIV Behavioral Surveillance, Ryan White Program Services Reports, and Medicaid enrollment records. Threshold and dynamic-inefficiency effects would require additional data on provider-level fixed costs and historical responses to funding shocks (e.g., sequestration impacts on Ryan White, state-level ADAP waiting lists). We defer these extensions to future work.
+
+} 
+
+\section{Software}
+\label{sec:supp-software}
+The model was implemented in Python using the Repast for Python (Repast4Py) high-performance agent-based modeling toolkit~\cite{collier_distributed_2022}. Exponential-family random graph models were fit and simulated using the \texttt{statnet} suite of R packages~\cite{handcock_statnet_2008, goodreau_statnet_2008}, interfaced from Python via \texttt{rpy2}. Simulations were run on the Midway3 high-performance computing cluster at the University of Chicago. Code to reproduce the experiments and analyses is available at \url{https://github.com/[your-org]/[repo]}.
+
+\ifnum\suppstandalone=1\relax
+  \bibliographystyle{elsarticle-num}
+  \bibliography{supplementary_material_references,frontiers_bibliography, costs_bibliography}
+  \end{document}
+\fi

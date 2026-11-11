@@ -1,0 +1,235 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{mayer_persistent_2021}
+K.~H. Mayer, L.~Nelson, L.~Hightow-Weidman, M.~J. Mimiaga, L.~Mena, S.~Reisner,
+  D.~Daskalakis, S.~A. Safren, C.~Beyrer, P.~S. Sullivan, The persistent and
+  evolving {HIV} epidemic in american men who have sex with men 397~(10279)
+  (2021) 1116--1126.
+\newblock \href {https://doi.org/10.1016/S0140-6736(21)00321-4}
+  {\path{doi:10.1016/S0140-6736(21)00321-4}}.
+
+\bibitem{sullivan_epidemiology_2021}
+P.~S. Sullivan, A.~S. Johnson, E.~S. Pembleton, R.~Stephenson, A.~C. Justice,
+  K.~N. Althoff, H.~Bradley, A.~D. Castel, A.~M. Oster, E.~S. Rosenberg, K.~H.
+  Mayer, C.~Beyrer, Epidemiology of {HIV} in the {USA}: epidemic burden,
+  inequities, contexts, and responses 397~(10279) (2021) 1095--1106, publisher:
+  Elsevier B.V.
+\newblock \href {https://doi.org/10.1016/S0140-6736(21)00395-0}
+  {\path{doi:10.1016/S0140-6736(21)00395-0}}.
+
+\bibitem{beyrer_call_2021}
+C.~Beyrer, A.~A. Adimora, S.~L. Hodder, E.~Hopkins, G.~Millett, S.~H.~H. Mon,
+  P.~S. Sullivan, R.~P. Walensky, A.~Pozniak, M.~Warren, B.~Richman,
+  R.~Copeland, K.~H. Mayer, Call to action: how can the {US} {Ending} the {HIV}
+  {Epidemic} initiative succeed?, The Lancet 397~(10279) (2021) 1151--1156,
+  publisher: Elsevier.
+\newblock \href {https://doi.org/10.1016/S0140-6736(21)00390-1}
+  {\path{doi:10.1016/S0140-6736(21)00390-1}}.
+
+\bibitem{grant_uptake_2014}
+R.~M. Grant, P.~L. Anderson, V.~McMahan, A.~Liu, K.~R. Amico, M.~Mehrotra,
+  S.~Hosek, C.~Mosquera, M.~Casapia, O.~Montoya, S.~Buchbinder, V.~G. Veloso,
+  K.~Mayer, S.~Chariyalertsak, L.-G. Bekker, E.~G. Kallas, M.~Schechter,
+  J.~Guanira, L.~Bushman, D.~N. Burns, J.~F. Rooney, D.~V. Glidden, {iPrEx
+  study team}, Uptake of pre-exposure prophylaxis, sexual practices, and {HIV}
+  incidence in men and transgender women who have sex with men: a cohort study,
+  The Lancet. Infectious Diseases 14~(9) (2014) 820--829.
+\newblock \href {https://doi.org/10.1016/S1473-3099(14)70847-3}
+  {\path{doi:10.1016/S1473-3099(14)70847-3}}.
+
+\bibitem{Fed_HIV_stats}
+{HIV.gov},
+  \href{https://www.hiv.gov/hiv-basics/overview/data-and-trends/statistics}{U.s.
+  statistics}.
+\newline\urlprefix\url{https://www.hiv.gov/hiv-basics/overview/data-and-trends/statistics}
+
+\bibitem{CDCPrEP2022}
+{Centers for Disease Control and Prevention},
+  \href{https://www.cdc.gov/hiv/library/reports/hiv-surveillance.html}{{PrEP}
+  coverage, uptake, and use in the {U.S.}} (2022).
+\newline\urlprefix\url{https://www.cdc.gov/hiv/library/reports/hiv-surveillance.html}
+
+\bibitem{schneider_at_2017}
+J.~A. Schneider, N.~Lancki, P.~Schumm, At the intersection of criminal justice
+  involvement and sexual orientation: {Dynamic} networks and health among a
+  population-based sample of young {Black} men who have sex with men, Social
+  Networks 51 (2017) 73--87.
+\newblock \href {https://doi.org/10.1016/j.socnet.2017.04.001}
+  {\path{doi:10.1016/j.socnet.2017.04.001}}.
+
+\bibitem{chicago_getting_to_zero}
+{AIDS Foundation of Chicago}, \href{https://gtzillinois.hiv}{Getting to {Zero}
+  {Illinois} 2019-2023 {Plan}} (2019).
+\newline\urlprefix\url{https://gtzillinois.hiv}
+
+\bibitem{chicago_gtz_2.0}
+{AIDS Foundation of Chicago}, \href{https://gtzillinois.hiv}{Getting to {Zero}
+  {Illinois} {Plan} 2.0: 2024 - 2027} (2024).
+\newline\urlprefix\url{https://gtzillinois.hiv}
+
+\bibitem{schneider_skaathun_2017}
+J.~Schneider, B.~Cornwell, A.~Jonas, N.~LanckiI, R.~Behler, Skaathun {B}, et
+  al.{Network} dynamics of {HIV} risk and prevention in a population-based
+  cohort of young {Black} men who have sex with men, Network Science (2017)
+  1--29.
+
+\bibitem{khanna_preexposure_2016}
+A.~S. Khanna, S.~Michaels, B.~Skaathun, E.~Morgan, K.~Green, L.~Young, J.~A.
+  Schneider, {uConnect Study Team}, Preexposure {Prophylaxis} {Awareness} and
+  {Use} in a {Population}-{Based} {Sample} of {Young} {Black} {Men} {Who}
+  {Have} {Sex} {With} {Men}, JAMA internal medicine 176~(1) (2016) 136--138.
+\newblock \href {https://doi.org/10.1001/jamainternmed.2015.6536}
+  {\path{doi:10.1001/jamainternmed.2015.6536}}.
+
+\bibitem{khanna_modeling_2019}
+A.~S. Khanna, J.~A. Schneider, N.~Collier, J.~Ozik, R.~Issema, A.~d. Paola,
+  A.~Skwara, A.~Ramachandran, J.~Webb, R.~Brewer, W.~Cunningham, C.~Hilliard,
+  S.~Ramani, K.~Fujimoto, N.~Harawa,
+  \href{https://doi.org/10.1097%2Fqad.0000000000002290}{A modeling framework to
+  inform preexposure prophylaxis initiation and retention scale-up in the
+  context of `{Getting} to {Zero}' initiatives}, AIDS 33~(12) (2019)
+  1911--1922, publisher: Ovid Technologies (Wolters Kluwer Health).
+\newblock \href {https://doi.org/10.1097/qad.0000000000002290}
+  {\path{doi:10.1097/qad.0000000000002290}}.
+\newline\urlprefix\url{https://doi.org/10.1097%2Fqad.0000000000002290}
+
+\bibitem{morris1991factorial}
+M.~D. Morris, Factorial sampling plans for preliminary computational
+  experiments, Technometrics 33~(2) (1991) 161--174.
+
+\bibitem{campolongo2007effective}
+F.~Campolongo, J.~Cariboni, A.~Saltelli, An effective screening design for
+  sensitivity analysis of large models, Environmental Modelling \& Software
+  22~(10) (2007) 1509--1518.
+
+\bibitem{idph_msm_plwhiv_chicago_2024}
+{Illinois Department of Public Health, HIV Surveillance Unit}, People living
+  with {HIV} disease as of 2023, {Chicago} - among {MSM} by {Race}, {Risk}, and
+  {Age} group (Jul. 2024).
+
+\bibitem{prepcosts2018}
+R.~A. Bonacci, M.~Van~Handel, R.~Huggins, S.~Inusah, D.~K. Smith, Estimated
+  uncovered costs for {HIV} preexposure prophylaxis in the {US}, 2018, Health
+  Affairs 42 (2023) 546--555, pMID: 37011310.
+\newblock \href {https://doi.org/10.1377/hlthaff.2022.00523}
+  {\path{doi:10.1377/hlthaff.2022.00523}}.
+
+\bibitem{BinghamFarnham2021}
+A.~Bingham, R.~K. Shrestha, N.~Khurana, E.~U. Jacobson, P.~G. Farnham,
+  Estimated lifetime {HIV}-related medical costs in the {United States},
+  Sexually Transmitted Diseases 48~(4) (2021) 299--304.
+\newblock \href {https://doi.org/10.1097/OLQ.0000000000001366}
+  {\path{doi:10.1097/OLQ.0000000000001366}}.
+
+\bibitem{gramacy_surrogates_2020}
+R.~B. Gramacy, \href{http://bobby.gramacy.com/surrogates/}{Surrogates:
+  {Gaussian} {Process} {Modeling}, {Design} and {Optimization} for the
+  {Applied} {Sciences}}, Chapman Hall/CRC, Boca Raton, Florida, 2020.
+\newline\urlprefix\url{http://bobby.gramacy.com/surrogates/}
+
+\bibitem{sullivan_excess_2025}
+P.~S. Sullivan, K.~M. Wall, M.~Juhasz, S.~DuBose, J.~S. Crowley, C.~Breyer,
+  G.~Millett, K.~Brisco, G.~Le, K.~Mayer,
+  \href{https://doi.org/10.1001/jamanetworkopen.2025.31341}{Excess {HIV}
+  {Infections} and {Costs} {Associated} {With} {Reductions} in {HIV}
+  {Prevention} {Services} in the {US}}, JAMA Network Open 8~(9) (2025)
+  e2531341.
+\newblock \href {https://doi.org/10.1001/jamanetworkopen.2025.31341}
+  {\path{doi:10.1001/jamanetworkopen.2025.31341}}.
+\newline\urlprefix\url{https://doi.org/10.1001/jamanetworkopen.2025.31341}
+
+\bibitem{forster_potential_2025}
+R.~Forster, M.~Schnure, J.~Jones, C.~Lesko, D.~S. Batey, I.~Butler, D.~Ward,
+  K.~Musgrove, K.~N. Althoff, M.~K. Jain, K.~A. Gebo, D.~W. Dowdy, M.~Shah,
+  P.~Kasaie, A.~T. Fojo,
+  \href{https://www.acpjournals.org/doi/10.7326/ANNALS-25-01737}{The
+  {Potential} {Impact} of {Ending} the {Ryan} {White} {HIV}/{AIDS} {Program} on
+  {HIV} {Incidence}: {A} {Simulation} {Study} in 31 {U}.{S}. {Cities}}, Annals
+  of Internal Medicine 178~(11) (2025) 1580--1590.
+\newblock \href {https://doi.org/10.7326/ANNALS-25-01737}
+  {\path{doi:10.7326/ANNALS-25-01737}}.
+\newline\urlprefix\url{https://www.acpjournals.org/doi/10.7326/ANNALS-25-01737}
+
+\bibitem{chicago_hiv_data_brief_2024}
+{Chicago Department of Public Health},
+  \href{https://www.chicago.gov/content/dam/city/depts/cdph/infectious_disease/STI_HIV_AIDS/reports/2025/2024-HIV-Data-Brief_WAD.ax.pdf}{2024
+  {HIV} {Data} {Brief}}.
+\newline\urlprefix\url{https://www.chicago.gov/content/dam/city/depts/cdph/infectious_disease/STI_HIV_AIDS/reports/2025/2024-HIV-Data-Brief_WAD.ax.pdf}
+
+\bibitem{lancki_preexposure_2018}
+N.~Lancki, E.~Almirol, L.~Alon, M.~McNulty, J.~Schneider, Preexposure
+  prophylaxis guidelines have low sensitivity for identifying seroconverters in
+  a sample of young {Black} {MSM} in {Chicago}., AIDS 32 (2018) 383--92.
+
+\bibitem{Census2021ACSDT5YSPT2021.B01001}
+{U.S. Census Bureau},
+  \href{https://data.census.gov/table/ACSDT5YSPT2021.B01001?q=B01001:+Sex+by+Age&t=005&g=160XX00US1714000}{{"SEX
+  BY AGE." 2021: American Community Survey, ACS 5-Year Estimates, Selected
+  Population Detailed Tables, Table B01001}}, U.S. Census Bureau, accessed on
+  24 July 2026.
+\newline\urlprefix\url{https://data.census.gov/table/ACSDT5YSPT2021.B01001?q=B01001:+Sex+by+Age&t=005&g=160XX00US1714000}
+
+\bibitem{lieb_statewide_2011}
+S.~Lieb, S.~J. Fallon, S.~R. Friedman, D.~R. Thompson, G.~J. Gates, T.~M.
+  Liberti, R.~M. Malow, Statewide estimation of racial/ethnic populations of
+  men who have sex with men in the {U}.{S}., Public Health Reports (2011).
+\newblock \href {https://doi.org/10.1177/003335491112600110}
+  {\path{doi:10.1177/003335491112600110}}.
+
+\bibitem{gtz_hiv_status_awareness_2021}
+{Getting to Zero Illinois, US Health and Human Services, America's HIV Epidemic
+  Analysis Dashboard (AHEAD), as of 6/22/23},
+  \href{https://dashboard.gtzillinois.hiv/graphs/awareness-of-hiv-status/}{Awareness
+  of {HIV} {Status} – {GTZ} {Dashboard}}.
+\newline\urlprefix\url{https://dashboard.gtzillinois.hiv/graphs/awareness-of-hiv-status/}
+
+\bibitem{dyer2024black}
+J.~Dyer, P.~Cannon, J.~D. Farmer, S.~M. Schmon, Black-box bayesian inference
+  for agent-based models, Journal of Economic Dynamics and Control 161 (2024)
+  104827.
+\newblock \href {https://doi.org/10.1016/j.jedc.2024.104827}
+  {\path{doi:10.1016/j.jedc.2024.104827}}.
+
+\bibitem{KFF2023}
+{Kaiser Family Foundation},
+  \href{https://www.kff.org/hivaids/fact-sheet/u-s-federal-funding-for-hivaids-trends-over-time/}{{U.S.}
+  federal funding for {HIV/AIDS}: Trends over time} (2023).
+\newline\urlprefix\url{https://www.kff.org/hivaids/fact-sheet/u-s-federal-funding-for-hivaids-trends-over-time/}
+
+\bibitem{Gilead2021Prep}
+{Gilead Sciences}, \href{https://www.gileadadvancingaccess.com}{Advancing
+  access for {PrEP} users} (2021).
+\newline\urlprefix\url{https://www.gileadadvancingaccess.com}
+
+\bibitem{Yehia2014Continuum}
+B.~R. Yehia, et~al., The {HIV} care continuum: Changes over time in retention
+  in care and viral suppression, PLoS One 9~(6) (2014) e101190.
+\newblock \href {https://doi.org/10.1371/journal.pone.0101190}
+  {\path{doi:10.1371/journal.pone.0101190}}.
+
+\bibitem{collier_distributed_2022}
+N.~Collier, J.~Ozik, {DISTRIBUTED} {AGENT}-{BASED} {SIMULATION} {WITH}
+  {REPAST4PY}, Proceedings of the ... Winter Simulation Conference. Winter
+  Simulation Conference 2022 (2022) 192--206.
+\newblock \href {https://doi.org/10.1109/wsc57314.2022.10015389}
+  {\path{doi:10.1109/wsc57314.2022.10015389}}.
+
+\bibitem{handcock_statnet_2008}
+M.~S. Handcock, D.~R. Hunter, C.~T. Butts, S.~M. Goodreau, M.~Morris,
+  \href{https://doi.org/10.18637%2Fjss.v024.i01}{statnet: {Software} {Tools}
+  for the {Representation}, {Visualization}, {Analysis} and {Simulation} of
+  {Network} {Data}}, Journal of Statistical Software 24~(1) (2008).
+\newblock \href {https://doi.org/10.18637/jss.v024.i01}
+  {\path{doi:10.18637/jss.v024.i01}}.
+\newline\urlprefix\url{https://doi.org/10.18637%2Fjss.v024.i01}
+
+\bibitem{goodreau_statnet_2008}
+S.~Goodreau, M.~Handcock, D.~Hunter, C.~Butts, M.~Morris, A statnet
+  {Tutorial}., Journal of Statistical Software 24 (2008) 1--27.
+
+\end{thebibliography}

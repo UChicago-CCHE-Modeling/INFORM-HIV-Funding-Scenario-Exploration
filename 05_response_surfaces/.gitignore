@@ -1,0 +1,15 @@
+build/
+output/pdf/
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+TSWLatexianTemp_*
+__pycache__/
+local/
+# Respondent-level data must live OUTSIDE the repository. Belt and braces:
+respondent*.csv
+respondent_*.pdf
+*_private*/
